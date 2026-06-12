@@ -11,3 +11,4 @@ build/
 ml-service/ml_env/
 progress.md
 REACT_FRONTEND.md
+gitignore
