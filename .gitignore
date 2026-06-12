@@ -1,0 +1,13 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.pkl
+*.joblib
+dist/
+build/
+.DS_Store
+ml-service/ml_env/
+progress.md
+REACT_FRONTEND.md

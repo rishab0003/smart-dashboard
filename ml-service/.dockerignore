@@ -1,0 +1,20 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+
+.env
+.git
+.gitignore
+
+*.md
+
+# Don't include Jupyter notebooks in production
+notebooks/
+
+# Don't include training data (model is already saved)
+data/*.csv
+
+tests/

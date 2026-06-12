@@ -1,0 +1,16 @@
+[
+  "month",
+  "year",
+  "quarter",
+  "day_of_week",
+  "is_weekend",
+  "is_quarter_end",
+  "season",
+  "month_sin",
+  "month_cos",
+  "quantityordered",
+  "priceeach",
+  "msrp",
+  "productline_encoded",
+  "territory_encoded"
+]

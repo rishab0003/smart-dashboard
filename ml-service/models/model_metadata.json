@@ -1,0 +1,23 @@
+{
+  "model_type": "Random Forest",
+  "model_version": "1.0.0",
+  "features": [
+    "month",
+    "year",
+    "quarter",
+    "day_of_week",
+    "is_weekend",
+    "is_quarter_end",
+    "season",
+    "month_sin",
+    "month_cos",
+    "quantityordered",
+    "priceeach",
+    "msrp",
+    "productline_encoded",
+    "territory_encoded"
+  ],
+  "mae": 294.41826922350725,
+  "rmse": 534.3255690696259,
+  "r2": 0.9130541974856664
+}

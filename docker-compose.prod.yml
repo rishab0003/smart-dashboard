@@ -1,0 +1,110 @@
+services:
+
+  # ── MONGODB ──────────────────────────────────────────────
+  mongodb:
+    image: mongo:7.0
+    container_name: smart_dashboard_db
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password123}
+      MONGO_INITDB_DATABASE: smart_dashboard
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      app_network:
+        aliases:
+          - mongodb
+
+
+  # ── BACKEND (Node.js) ────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: smart_dashboard_backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 5000
+      MONGO_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password123}@mongodb:27017/smart_dashboard?authSource=admin
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRE: 7d
+      ML_SERVICE_URL: http://ml-service:5001
+      FRONTEND_URL: https://${DOMAIN}
+    depends_on:
+      - mongodb
+    networks:
+      - app_network
+
+
+  # ── ML SERVICE (Python Flask) ────────────────────────────
+  ml-service:
+    build:
+      context: ./ml-service
+      dockerfile: Dockerfile
+    container_name: smart_dashboard_ml
+    restart: unless-stopped
+    environment:
+      MODEL_DIR: /app/models
+      FLASK_ENV: production
+    volumes:
+      - ./ml-service/models:/app/models:ro
+      - ./ml-service/data:/app/data:ro
+    networks:
+      - app_network
+
+
+  # ── FRONTEND (React) ─────────────────────────────────────
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: smart_dashboard_frontend
+    restart: unless-stopped
+    environment:
+      VITE_API_URL: https://${DOMAIN}
+    depends_on:
+      - backend
+    networks:
+      - app_network
+
+
+  # ── NGINX (Reverse Proxy with SSL) ──────────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: smart_dashboard_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - app_network
+
+
+  # ── CERTBOT (SSL Certificate Management) ────────────────
+  certbot:
+    image: certbot/certbot
+    container_name: smart_dashboard_certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+
+# ── NETWORKS ──────────────────────────────────────────────
+networks:
+  app_network:
+    driver: bridge
+
+
+# ── PERSISTENT VOLUMES ────────────────────────────────────
+volumes:
+  mongodb_data:
