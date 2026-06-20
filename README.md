@@ -8,13 +8,21 @@
 
 **SmartAnalyticsDash** is an enterprise-ready, containerized full-stack analytics suite. It bridges a modern glassmorphic React interface with a Node.js/Express API Gateway and an independent Python Flask/Gunicorn microservice. It allows users to ingest CSV datasets, explore and edit records in real time, and fit machine learning models (Random Forest) to compute predictive sales forecasts.
 
----
-
 ## 🖼️ Interface Previews
 
 <div align="center">
-  <img src="docs/images/media__1781932639084.png" width="48%" alt="Analytics Dashboard" />
-  <img src="docs/images/media__1781933860921.png" width="48%" alt="CSV Data Management" />
+  <h3>1. Interactive Sales Dashboard</h3>
+  <img src="docs/images/dashboard_light.png" width="100%" alt="Interactive Sales Dashboard" style="border-radius: 8px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  
+  <br/><br/>
+  
+  <h3>2. Business Insights & Analytics</h3>
+  <img src="docs/images/analytics_light.png" width="100%" alt="Business Insights & Analytics" style="border-radius: 8px; margin-bottom: 24px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
+  
+  <br/><br/>
+  
+  <h3>3. Machine Learning Forecasting Console</h3>
+  <img src="docs/images/predictions_light.png" width="100%" alt="Machine Learning Forecasting Console" style="border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);" />
 </div>
 
 ---
