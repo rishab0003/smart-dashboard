@@ -10,6 +10,15 @@
 
 ---
 
+## 🖼️ Interface Previews
+
+<div align="center">
+  <img src="docs/images/media__1781932639084.png" width="48%" alt="Analytics Dashboard" />
+  <img src="docs/images/media__1781933860921.png" width="48%" alt="CSV Data Management" />
+</div>
+
+---
+
 ## 🏛️ System Architecture
 
 The application is orchestrated as a modular microservices platform via **Docker Compose** and **Nginx Reverse Proxy**:
