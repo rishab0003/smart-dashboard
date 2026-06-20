@@ -151,48 +151,50 @@ export default function DataExplorerPage() {
       )}
 
       {/* Control Bar */}
-      <SpotlightCard className="r-control-bar" style={{ padding: '14px 20px' }}>
-        {/* Search */}
-        <div className="r-control-bar-search">
-          <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            placeholder="Search product, category, region..."
-            value={search}
-            onChange={handleSearchChange}
-            className="r-input"
-            style={{ 
-              paddingLeft: '36px', 
-              height: '38px', 
-              fontSize: '13px', 
-              width: '100%', 
-              background: 'var(--bg-elevated)', 
-              border: '1px solid var(--border)',
-              borderRadius: 'var(--radius-md)'
-            }}
-          />
-        </div>
+      <SpotlightCard style={{ padding: '14px 20px' }}>
+        <div className="r-control-bar">
+          {/* Search */}
+          <div className="r-control-bar-search">
+            <Search size={14} style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+            <input
+              type="text"
+              placeholder="Search product, category, region..."
+              value={search}
+              onChange={handleSearchChange}
+              className="r-input"
+              style={{ 
+                paddingLeft: '36px', 
+                height: '38px', 
+                fontSize: '13px', 
+                width: '100%', 
+                background: 'var(--bg-elevated)', 
+                border: '1px solid var(--border)',
+                borderRadius: 'var(--radius-md)'
+              }}
+            />
+          </div>
 
-        {/* Info & Page Options */}
-        <div className="r-control-bar-options">
-          <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>
-            Found <strong style={{ color: 'var(--accent)' }}>{totalRecords.toLocaleString()}</strong> records
-          </span>
+          {/* Info & Page Options */}
+          <div className="r-control-bar-options">
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)', fontWeight: '500' }}>
+              Found <strong style={{ color: 'var(--accent)' }}>{totalRecords.toLocaleString()}</strong> records
+            </span>
 
-          <select
-            value={limit}
-            onChange={e => { setLimit(parseInt(e.target.value)); setPage(1); }}
-            className="glass-select"
-            style={{
-              background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
-              color: 'var(--text-primary)', fontSize: '12px', padding: '0 28px 0 12px', height: '38px', outline: 'none',
-              cursor: 'pointer'
-            }}
-          >
-            {[5, 10, 25, 50].map(val => (
-              <option key={val} value={val}>{val} rows / page</option>
-            ))}
-          </select>
+            <select
+              value={limit}
+              onChange={e => { setLimit(parseInt(e.target.value)); setPage(1); }}
+              className="glass-select"
+              style={{
+                background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)',
+                color: 'var(--text-primary)', fontSize: '12px', padding: '0 28px 0 12px', height: '38px', outline: 'none',
+                cursor: 'pointer'
+              }}
+            >
+              {[5, 10, 25, 50].map(val => (
+                <option key={val} value={val}>{val} rows / page</option>
+              ))}
+            </select>
+          </div>
         </div>
       </SpotlightCard>
 
