@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
-import { Upload, File, CheckCircle, XCircle, Clock, Database, ChevronRight, Activity, Cpu, Play } from 'lucide-react';
+import { Upload, File, CheckCircle, Database, Cpu } from 'lucide-react';
 import axios from 'axios';
 import SpotlightCard from '../components/SpotlightCard';
 
 export default function UploadPage() {
   const [uploadedFiles, setUploadedFiles] = useState([]);
-  const [uploading, setUploading] = useState(false);
   const [overwrite, setOverwrite] = useState(true);
   const navigate = useNavigate();
 
@@ -18,11 +17,53 @@ export default function UploadPage() {
   const [trainProgress, setTrainProgress] = useState(0);
   const [uploadErrorMsg, setUploadErrorMsg] = useState('');
 
-  useEffect(() => {
-    fetchUploadHistory();
+  const pollStatus = useCallback((id, onComplete) => {
+    let progress = 0;
+    const intervalId = setInterval(async () => {
+      // Animate progress up to 90% while waiting
+      progress = Math.min(progress + 15, 90);
+      setTrainProgress(progress);
+
+      try {
+        const token = localStorage.getItem('token');
+        const response = await axios.get(`/api/upload/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        const upload = response.data.data;
+        if (upload.status !== 'processing') {
+          clearInterval(intervalId);
+          setTrainProgress(100);
+
+          const success = upload.status === 'completed';
+          setPipelineStep(success ? 4 : 0);
+          if (!success && upload.errors && upload.errors.length > 0) {
+            setUploadErrorMsg(upload.errors[0].message);
+          }
+
+          setUploadedFiles(prev => prev.map(file => (
+            file.id === id
+              ? {
+                  ...file,
+                  status: success ? 'success' : 'error',
+                  error: success ? null : (upload.errors && upload.errors.length > 0 ? upload.errors[0].message : file.error)
+                }
+              : file
+          )));
+
+          if (onComplete) onComplete(success);
+        }
+      } catch (err) {
+        console.error('Error polling status:', err);
+        clearInterval(intervalId);
+        setPipelineStep(0);
+        setUploadErrorMsg('Status check failed');
+      }
+    }, 1200);
+
+    return () => clearInterval(intervalId);
   }, []);
 
-  const fetchUploadHistory = async () => {
+  const fetchUploadHistory = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/upload', {
@@ -46,44 +87,11 @@ export default function UploadPage() {
     } catch (err) {
       console.error('Failed to load upload history:', err);
     }
-  };
+  }, [pollStatus]);
 
-  const pollStatus = (id, onComplete) => {
-    let progress = 0;
-    const intervalId = setInterval(async () => {
-      // Animate progress up to 90% while waiting
-      progress = Math.min(progress + 15, 90);
-      setTrainProgress(progress);
-
-      try {
-        const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/upload/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const upload = response.data.data;
-        if (upload.status !== 'processing') {
-          clearInterval(intervalId);
-          setTrainProgress(100);
-          
-          const success = upload.status === 'completed';
-          setPipelineStep(success ? 4 : 0);
-          if (!success && upload.errors && upload.errors.length > 0) {
-            setUploadErrorMsg(upload.errors[0].message);
-          }
-
-          // Refresh history list
-          fetchUploadHistory();
-
-          if (onComplete) onComplete(success);
-        }
-      } catch (err) {
-        console.error('Error polling status:', err);
-        clearInterval(intervalId);
-        setPipelineStep(0);
-        setUploadErrorMsg('Status check failed');
-      }
-    }, 1200);
-  };
+  useEffect(() => {
+    fetchUploadHistory();
+  }, [fetchUploadHistory]);
 
   const detectSchemaMapping = (headers) => {
     // Each field has multiple regex patterns to match real-world column naming conventions
@@ -197,6 +205,29 @@ export default function UploadPage() {
     return mapping;
   };
 
+  const performUpload = useCallback(async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post(`/api/upload?overwrite=${overwrite}`, formData, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'multipart/form-data'
+        }
+      });
+
+      const uploadId = response.data.uploadId;
+      pollStatus(uploadId);
+
+    } catch (error) {
+      console.error('Upload failed:', error);
+      setPipelineStep(0);
+      setUploadErrorMsg(error.response?.data?.error || 'Ingest connection error');
+    }
+  }, [overwrite, pollStatus]);
+
   const onDrop = useCallback(async (acceptedFiles) => {
     const csvFile = acceptedFiles.find(file => file.name.endsWith('.csv'));
     
@@ -250,39 +281,13 @@ export default function UploadPage() {
     };
     reader.readAsText(csvFile);
 
-  }, [overwrite]);
+  }, [performUpload]);
 
   const { getRootProps, getInputProps } = useDropzone({
     onDrop,
     accept: { 'text/csv': ['.csv'] },
     multiple: false
   });
-
-  const performUpload = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
-    setUploading(true);
-
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/upload?overwrite=${overwrite}`, formData, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      const uploadId = response.data.uploadId;
-      pollStatus(uploadId);
-
-    } catch (error) {
-      console.error('Upload failed:', error);
-      setPipelineStep(0);
-      setUploadErrorMsg(error.response?.data?.error || 'Ingest connection error');
-    } finally {
-      setUploading(false);
-    }
-  };
 
   const formatFileSize = (bytes) => {
     if (!bytes) return '0 Bytes';

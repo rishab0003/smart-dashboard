@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Search, Edit2, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, Database, AlertCircle, CheckCircle, RefreshCw, X, Calendar, User, Tag, MapPin, DollarSign, Package } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Search, Edit2, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, AlertCircle, CheckCircle, X, Calendar, User, Tag, MapPin, Package } from 'lucide-react';
 import axios from 'axios';
 import SpotlightCard from '../components/SpotlightCard';
 
@@ -20,17 +20,7 @@ export default function DataExplorerPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [feedback, setFeedback] = useState({ type: '', message: '' });
 
-  useEffect(() => {
-    fetchSales();
-  }, [page, limit, search, sortBy, sortOrder]);
-
-  // Debounced search reset to page 1
-  const handleSearchChange = (e) => {
-    setSearch(e.target.value);
-    setPage(1);
-  };
-
-  const fetchSales = async () => {
+  const fetchSales = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -49,6 +39,16 @@ export default function DataExplorerPage() {
     } finally {
       setLoading(false);
     }
+  }, [page, limit, search, sortBy, sortOrder]);
+
+  useEffect(() => {
+    fetchSales();
+  }, [fetchSales]);
+
+  // Debounced search reset to page 1
+  const handleSearchChange = (e) => {
+    setSearch(e.target.value);
+    setPage(1);
   };
 
   const showFeedback = (type, message) => {

@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Brain, TrendingUp, Calendar, Package, MapPin, DollarSign, Lock, Unlock, RefreshCw, BarChart2, CheckCircle, ArrowRightLeft } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Brain, TrendingUp, Calendar, Package, MapPin, DollarSign, Lock, Unlock, RefreshCw, CheckCircle, ArrowRightLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 import axios from 'axios';
 import SpotlightCard from '../components/SpotlightCard';
@@ -39,24 +39,28 @@ const FEATURE_LABELS = {
 /* ── Count-up animation for prediction text ── */
 function AnimateCount({ value, duration = 600 }) {
   const [displayValue, setDisplayValue] = useState(0);
+  const displayValueRef = useRef(0);
 
   useEffect(() => {
     let start = null;
     const end = parseFloat(value);
-    const startVal = displayValue;
+    const startVal = displayValueRef.current;
     const step = (timestamp) => {
       if (!start) start = timestamp;
       const progress = Math.min((timestamp - start) / duration, 1);
       const ease = 1 - Math.pow(1 - progress, 3); // easeOutCubic
-      setDisplayValue(Math.floor(startVal + ease * (end - startVal)));
+      const nextValue = Math.floor(startVal + ease * (end - startVal));
+      displayValueRef.current = nextValue;
+      setDisplayValue(nextValue);
       if (progress < 1) {
         requestAnimationFrame(step);
       } else {
+        displayValueRef.current = end;
         setDisplayValue(end);
       }
     };
     requestAnimationFrame(step);
-  }, [value]);
+  }, [value, duration]);
 
   return <span>${displayValue.toLocaleString('en-US', { maximumFractionDigits: 0 })}</span>;
 }
@@ -98,12 +102,7 @@ export default function PredictionPage() {
     }
   }, [modelInfo]);
 
-  useEffect(() => {
-    fetchCustomFields();
-    fetchModelStatus();
-  }, []);
-
-  const fetchModelStatus = async () => {
+  const fetchModelStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/predict/status', {
@@ -115,42 +114,16 @@ export default function PredictionPage() {
     } catch (err) {
       console.error('Failed to load model status:', err);
     }
-  };
+  }, []);
 
-  const handleRetrain = async () => {
-    setTrainingModel(true);
-    setTrainSuccess(false);
-    setError('');
-    try {
-      const token = localStorage.getItem('token');
-      const response = await axios.post('/api/predict/train', {
-        hyperparameters: {
-          n_estimators: nEstimators,
-          max_depth: maxDepth
-        }
-      }, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (response.data.success) {
-        setTrainSuccess(true);
-        await fetchModelStatus();
-        setTimeout(() => setTrainSuccess(false), 3000);
-      }
-    } catch (err) {
-      setError(err.response?.data?.error || 'Model training failed. Please try again.');
-    } finally {
-      setTrainingModel(false);
-    }
-  };
-
-  const fetchCustomFields = async () => {
+  const fetchCustomFields = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const response = await axios.get('/api/analytics/fields', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const { categories, regions } = response.data.data;
-      
+
       let pLines = [];
       let tRegions = [];
 
@@ -196,20 +169,43 @@ export default function PredictionPage() {
     } finally {
       setLoadingFields(false);
     }
+  }, []);
+
+  const handleRetrain = async () => {
+    setTrainingModel(true);
+    setTrainSuccess(false);
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/predict/train', {
+        hyperparameters: {
+          n_estimators: nEstimators,
+          max_depth: maxDepth
+        }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setTrainSuccess(true);
+        await fetchModelStatus();
+        setTimeout(() => setTrainSuccess(false), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Model training failed. Please try again.');
+    } finally {
+      setTrainingModel(false);
+    }
   };
 
-  // Real-time Prediction Debounced Trigger
   useEffect(() => {
+    fetchCustomFields();
+    fetchModelStatus();
+  }, [fetchCustomFields, fetchModelStatus]);
+
+  // Real-time Prediction Debounced Trigger
+  const triggerPrediction = useCallback(async () => {
     if (!formData.productline || !formData.territory || !formData.month) return;
 
-    const delayDebounce = setTimeout(() => {
-      triggerPrediction();
-    }, 250);
-
-    return () => clearTimeout(delayDebounce);
-  }, [formData]);
-
-  const triggerPrediction = async () => {
     setError('');
     setLoading(true);
     try {
@@ -257,7 +253,15 @@ export default function PredictionPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData]);
+
+  useEffect(() => {
+    const delayDebounce = setTimeout(() => {
+      triggerPrediction();
+    }, 250);
+
+    return () => clearTimeout(delayDebounce);
+  }, [triggerPrediction]);
 
   const handleSliderChange = (name, val) => {
     setFormData(prev => ({
@@ -798,7 +802,7 @@ export default function PredictionPage() {
                 <div>
                   <span style={{ fontSize: '13px', fontWeight: '600', color: 'var(--text-primary)', display: 'block' }}>{item.productline} ({item.territory})</span>
                   <span style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                    Qty: {item.quantityordered} • Unit Price: ${item.priceeach} • Date: {months.find(m => m.value == item.month)?.label} {item.year}
+                    Qty: {item.quantityordered} • Unit Price: ${item.priceeach} • Date: {months.find(m => m.value === item.month)?.label} {item.year}
                   </span>
                 </div>
 

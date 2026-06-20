@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { BarChart3, TrendingUp, Filter, Download, Calendar, Sparkles, Activity, Printer } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { BarChart3, TrendingUp, Download, Calendar, Sparkles, Activity, Printer } from 'lucide-react';
 import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area
@@ -44,11 +44,7 @@ export default function AnalyticsPage() {
   const [selectedYear, setSelectedYear] = useState(2024);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    fetchAnalyticsData();
-  }, [selectedYear]);
-
-  const fetchAnalyticsData = async () => {
+  const fetchAnalyticsData = useCallback(async () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
@@ -76,7 +72,11 @@ export default function AnalyticsPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedYear]);
+
+  useEffect(() => {
+    fetchAnalyticsData();
+  }, [fetchAnalyticsData]);
 
   const handleExport = () => {
     let csvContent = "data:text/csv;charset=utf-8,";

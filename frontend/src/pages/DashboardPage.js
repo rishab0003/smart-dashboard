@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { DollarSign, ShoppingCart, TrendingUp, Users, ArrowUpRight, ArrowDownRight, BarChart2, Activity } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { DollarSign, ShoppingCart, TrendingUp, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
 import axios from 'axios';
 import SpotlightCard from '../components/SpotlightCard';
@@ -67,11 +67,21 @@ export default function DashboardPage() {
   // Real-time Chart customization state
   const [chartType, setChartType] = useState('area'); // 'line' | 'area' | 'bar'
 
-  useEffect(() => {
-    fetchInitialData();
+  const fetchTrendData = useCallback(async (year) => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers = { Authorization: `Bearer ${token}` };
+      const response = await axios.get(`/api/analytics/trend?year=${year}`, { headers });
+      setDashboardData(prev => ({
+        ...prev,
+        trend: response.data.data || []
+      }));
+    } catch (error) {
+      console.error(`Failed to fetch trend data for ${year}:`, error);
+    }
   }, []);
 
-  const fetchInitialData = async () => {
+  const fetchInitialData = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
@@ -104,21 +114,11 @@ export default function DashboardPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchTrendData]);
 
-  const fetchTrendData = async (year) => {
-    try {
-      const token = localStorage.getItem('token');
-      const headers = { Authorization: `Bearer ${token}` };
-      const response = await axios.get(`/api/analytics/trend?year=${year}`, { headers });
-      setDashboardData(prev => ({
-        ...prev,
-        trend: response.data.data || []
-      }));
-    } catch (error) {
-      console.error(`Failed to fetch trend data for ${year}:`, error);
-    }
-  };
+  useEffect(() => {
+    fetchInitialData();
+  }, [fetchInitialData]);
 
   const handleYearChange = async (year) => {
     setSelectedYear(year);

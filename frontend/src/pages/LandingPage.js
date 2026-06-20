@@ -2,13 +2,13 @@ import React, { useEffect, useRef, useState } from 'react';
 import { flushSync } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
-  BarChart3, TrendingUp, Upload, Brain, ArrowRight,
+  BarChart3, Upload, Brain, ArrowRight,
   CheckCircle, Star, Zap, Database, Shield, Globe, ChevronRight,
   Sun, Moon
 } from 'lucide-react';
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis,
-  BarChart, Bar, LineChart, Line
+  BarChart, Bar
 } from 'recharts';
 
 /* ── Fake data for hero preview ── */
@@ -21,7 +21,6 @@ const HERO_REVENUE = [
 const HERO_BAR = [
   { n: 'NA', v: 38 }, { n: 'EU', v: 25 }, { n: 'AP', v: 20 }, { n: 'LA', v: 12 }, { n: 'ME', v: 8 },
 ];
-const HERO_SPARK = [10,14,12,18,22,19,28,25,32,38,35,44];
 
 /* ── Count-up hook ── */
 function useCountUp(target, duration = 1800) {
@@ -253,9 +252,6 @@ export default function LandingPage({ isAuthenticated }) {
       );
     });
   };
-
-  /* Animated grid line */
-  const gridRef = useRef(null);
 
   return (
     <div style={{ background: 'var(--bg)', fontFamily: 'var(--font)', minHeight: '100vh', overflowX: 'hidden' }}>
