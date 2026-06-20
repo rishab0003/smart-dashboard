@@ -5,7 +5,8 @@
 
 set -e
 
-PROJECT_DIR="/home/rishab/SmartAnalyticsDash/smart-dashboard"
+# Dynamically resolve project directory relative to the script location
+PROJECT_DIR=$(cd "$(dirname "$0")" && pwd)
 
 echo "╔════════════════════════════════════════════════════════════════╗"
 echo "║                                                                ║"
