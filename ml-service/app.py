@@ -47,6 +47,10 @@ def load_model():
         encoder_path = os.path.join(MODEL_DIR, 'label_encoders.pkl')
         encoders = joblib.load(encoder_path) if os.path.exists(encoder_path) else {}
 
+        if model and hasattr(model, 'feature_importances_'):
+            imps = model.feature_importances_.tolist()
+            metadata['feature_importances'] = {col: round(imp, 4) for col, imp in zip(features, imps)}
+
         logger.info(f"✅ Model loaded: {metadata['model_type']} v{metadata['model_version']}")
 
         return model, features, metadata, encoders
@@ -186,6 +190,11 @@ def health_check():
 
 @app.route('/model-info', methods=['GET'])
 def model_info():
+    user_id = request.args.get('userId')
+    if user_id:
+        _, _, u_metadata, _ = get_user_model(user_id)
+        if u_metadata:
+            return jsonify(u_metadata), 200
 
     if not model_metadata:
         return jsonify({'error': 'No model loaded'}), 503
@@ -364,10 +373,55 @@ def train_user_model():
         X = df[feature_cols].fillna(0)
         y = df['sales']
 
-        # Train a simple Random Forest Regressor
+        # Get custom hyperparameters from request
+        hyperparams = data.get('hyperparameters', {})
+        n_estimators = int(hyperparams.get('n_estimators', 30))
+        max_depth = hyperparams.get('max_depth', 8)
+        if max_depth is not None:
+            max_depth = int(max_depth)
+
+        # Clamp hyperparameters for safety
+        n_estimators = max(5, min(250, n_estimators))
+        if max_depth is not None:
+            max_depth = max(2, min(25, max_depth))
+
+        # Train/test split for validation metrics evaluation if sample size allows
+        from sklearn.model_selection import train_test_split
+        from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+        import numpy as np
+
+        if len(df) >= 8:
+            X_train, X_val, y_train, y_val = train_test_split(X, y, test_size=0.2, random_state=42)
+        else:
+            # Overfit metric fallback for extremely small datasets
+            X_train, X_val, y_train, y_val = X, X, y, y
+
+        # Train model on validation split
+        val_model = RandomForestRegressor(
+            n_estimators=n_estimators,
+            max_depth=max_depth,
+            random_state=42,
+            n_jobs=1
+        )
+        val_model.fit(X_train, y_train)
+
+        # Predict and calculate validation metrics
+        y_pred = val_model.predict(X_val)
+        mae = float(mean_absolute_error(y_val, y_pred))
+        rmse = float(np.sqrt(mean_squared_error(y_val, y_pred)))
+        r2 = float(r2_score(y_val, y_pred))
+        
+        # Calculate MAPE (Mean Absolute Percentage Error)
+        non_zero_mask = y_val != 0
+        if np.any(non_zero_mask):
+            mape = float(np.mean(np.abs((y_val[non_zero_mask] - y_pred[non_zero_mask]) / y_val[non_zero_mask])) * 100)
+        else:
+            mape = 0.0
+
+        # Fit model on the complete user dataset
         model_rf = RandomForestRegressor(
-            n_estimators=30,
-            max_depth=8,
+            n_estimators=n_estimators,
+            max_depth=max_depth,
             random_state=42,
             n_jobs=1
         )
@@ -378,22 +432,41 @@ def train_user_model():
         joblib.dump(model_rf, os.path.join(MODEL_DIR, f'model_{user_id}.pkl'))
         joblib.dump(user_encoders, os.path.join(MODEL_DIR, f'encoders_{user_id}.pkl'))
 
+        # Calculate feature importances
+        feature_importances = {}
+        if model_rf and hasattr(model_rf, 'feature_importances_'):
+            imps = model_rf.feature_importances_.tolist()
+            feature_importances = {col: round(imp, 4) for col, imp in zip(feature_cols, imps)}
+
         metadata = {
             'model_type': 'Random Forest (User Custom)',
             'model_version': '1.0.0',
             'features': feature_cols,
+            'feature_importances': feature_importances,
             'records_count': len(records),
-            'trained_at': datetime.now().isoformat()
+            'trained_at': datetime.now().isoformat(),
+            'hyperparameters': {
+                'n_estimators': n_estimators,
+                'max_depth': max_depth
+            },
+            'metrics': {
+                'mae': round(mae, 2),
+                'rmse': round(rmse, 2),
+                'r2_score': round(r2, 4),
+                'mape': round(mape, 2)
+            }
         }
         with open(os.path.join(MODEL_DIR, f'metadata_{user_id}.json'), 'w') as f:
             json.dump(metadata, f, indent=2)
 
-        logger.info(f"✅ Trained and saved custom model for user {user_id} ({len(records)} records)")
+        logger.info(f"✅ Trained and saved custom model for user {user_id} ({len(records)} records) with n_estimators={n_estimators}, max_depth={max_depth}")
 
         return jsonify({
             'success': True,
             'message': 'Custom model trained successfully',
-            'records_count': len(records)
+            'records_count': len(records),
+            'metrics': metadata['metrics'],
+            'hyperparameters': metadata['hyperparameters']
         }), 200
 
     except Exception as e:

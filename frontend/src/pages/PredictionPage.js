@@ -19,6 +19,23 @@ const months = [
   { value: 12, label: 'December' }
 ];
 
+const FEATURE_LABELS = {
+  quantityordered: 'Quantity Ordered',
+  priceeach: 'Unit Price',
+  msrp: 'MSRP',
+  productline_encoded: 'Product Line',
+  territory_encoded: 'Territory/Region',
+  month: 'Month of Year',
+  year: 'Calendar Year',
+  quarter: 'Quarter',
+  season: 'Season',
+  is_quarter_end: 'Quarter End',
+  month_sin: 'Month Cycle (Sin)',
+  month_cos: 'Month Cycle (Cos)',
+  day_of_week: 'Day of Week',
+  is_weekend: 'Weekend'
+};
+
 /* ── Count-up animation for prediction text ── */
 function AnimateCount({ value, duration = 600 }) {
   const [displayValue, setDisplayValue] = useState(0);
@@ -68,6 +85,19 @@ export default function PredictionPage() {
   const [scenarioA, setScenarioA] = useState(null);
   const [modelInfo, setModelInfo] = useState(null);
 
+  // Hyperparameters & Training States
+  const [nEstimators, setNEstimators] = useState(30);
+  const [maxDepth, setMaxDepth] = useState(8);
+  const [trainingModel, setTrainingModel] = useState(false);
+  const [trainSuccess, setTrainSuccess] = useState(false);
+
+  useEffect(() => {
+    if (modelInfo && modelInfo.hyperparameters) {
+      setNEstimators(modelInfo.hyperparameters.n_estimators || 30);
+      setMaxDepth(modelInfo.hyperparameters.max_depth || 8);
+    }
+  }, [modelInfo]);
+
   useEffect(() => {
     fetchCustomFields();
     fetchModelStatus();
@@ -84,6 +114,32 @@ export default function PredictionPage() {
       }
     } catch (err) {
       console.error('Failed to load model status:', err);
+    }
+  };
+
+  const handleRetrain = async () => {
+    setTrainingModel(true);
+    setTrainSuccess(false);
+    setError('');
+    try {
+      const token = localStorage.getItem('token');
+      const response = await axios.post('/api/predict/train', {
+        hyperparameters: {
+          n_estimators: nEstimators,
+          max_depth: maxDepth
+        }
+      }, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (response.data.success) {
+        setTrainSuccess(true);
+        await fetchModelStatus();
+        setTimeout(() => setTrainSuccess(false), 3000);
+      }
+    } catch (err) {
+      setError(err.response?.data?.error || 'Model training failed. Please try again.');
+    } finally {
+      setTrainingModel(false);
     }
   };
 
@@ -246,6 +302,16 @@ export default function PredictionPage() {
       color: '#E85D26'
     }
   ] : [];
+
+  const importanceData = modelInfo && modelInfo.feature_importances
+    ? Object.entries(modelInfo.feature_importances)
+        .map(([key, val]) => ({
+          name: FEATURE_LABELS[key] || key,
+          importance: val * 100
+        }))
+        .sort((a, b) => b.importance - a.importance)
+        .slice(0, 8)
+    : [];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} className="fade-in">
@@ -494,13 +560,13 @@ export default function PredictionPage() {
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '20px' }}>
-                <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                <div style={{ padding: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Scenario A (Locked)</div>
                   <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--text-primary)' }}>${Math.round(scenarioA.predicted_sales).toLocaleString()}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Qty: {scenarioA.formData.quantityordered} • Price: ${scenarioA.formData.priceeach}</div>
                 </div>
 
-                <div style={{ padding: '12px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border)', borderRadius: '6px' }}>
+                <div style={{ padding: '12px', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px' }}>
                   <div style={{ fontSize: '10px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: '4px' }}>Scenario B (Current)</div>
                   <div style={{ fontSize: '18px', fontWeight: '800', color: 'var(--accent)' }}>${Math.round(prediction.predicted_sales).toLocaleString()}</div>
                   <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>Qty: {formData.quantityordered} • Price: ${formData.priceeach}</div>
@@ -531,15 +597,183 @@ export default function PredictionPage() {
               <div style={{ height: '140px', width: '100%' }}>
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={comparisonChartData} layout="vertical" margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.03)" horizontal={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
                     <XAxis type="number" stroke="var(--text-muted)" tick={{ fontSize: 9 }} tickFormatter={(v) => `$${v/1000}k`} />
                     <YAxis dataKey="name" type="category" stroke="var(--text-muted)" tick={{ fontSize: 9 }} width={90} />
-                    <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', fontSize: '10px' }} />
+                    <Tooltip formatter={(value) => [`$${value.toLocaleString()}`, 'Revenue']} contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', fontSize: '10px', color: 'var(--text-primary)', borderRadius: '6px' }} labelStyle={{ color: 'var(--text-secondary)' }} />
                     <Bar dataKey="revenue" radius={[0, 3, 3, 0]}>
                       {comparisonChartData.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={entry.color} />
                       ))}
                     </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </SpotlightCard>
+          )}
+
+          {/* ML Model Hyperparameter Tuning & Metrics Console */}
+          <SpotlightCard style={{ padding: '28px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <Brain size={16} color="var(--accent)" />
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>Hyperparameter Tuning</h3>
+              </div>
+              {modelInfo?.hyperparameters && (
+                <span style={{ fontSize: '10px', color: 'var(--text-muted)', background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '4px', padding: '2px 6px' }}>
+                  v1.0.0
+                </span>
+              )}
+            </div>
+
+            {/* Hyperparameter Sliders */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '18px', marginBottom: '24px' }}>
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Estimators (Trees)</span>
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--accent)' }}>{nEstimators}</span>
+                </div>
+                <input
+                  type="range"
+                  min="10"
+                  max="150"
+                  step="10"
+                  disabled={!hasCustomFields || trainingModel}
+                  value={nEstimators}
+                  onChange={(e) => setNEstimators(parseInt(e.target.value))}
+                  className="r-slider"
+                  style={{ opacity: hasCustomFields ? 1 : 0.5 }}
+                />
+              </div>
+
+              <div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '600', color: 'var(--text-secondary)' }}>Max Tree Depth</span>
+                  <span style={{ fontSize: '12px', fontWeight: '800', color: 'var(--accent)' }}>{maxDepth}</span>
+                </div>
+                <input
+                  type="range"
+                  min="2"
+                  max="20"
+                  step="1"
+                  disabled={!hasCustomFields || trainingModel}
+                  value={maxDepth}
+                  onChange={(e) => setMaxDepth(parseInt(e.target.value))}
+                  className="r-slider"
+                  style={{ opacity: hasCustomFields ? 1 : 0.5 }}
+                />
+              </div>
+            </div>
+
+            {/* Retrain Button */}
+            <div style={{ marginBottom: '24px' }}>
+              {hasCustomFields ? (
+                <button
+                  onClick={handleRetrain}
+                  disabled={trainingModel}
+                  className="r-btn r-btn-primary"
+                  style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+                >
+                  {trainingModel ? (
+                    <>
+                      <div className="spinner" style={{ width: '12px', height: '12px', border: '2px solid rgba(255,255,255,0.3)', borderTop: '2px solid #fff' }} />
+                      Converging Decision Trees...
+                    </>
+                  ) : trainSuccess ? (
+                    <>
+                      <CheckCircle size={14} color="var(--success)" />
+                      Model Optimised!
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw size={14} />
+                      Optimise Model Parameters
+                    </>
+                  )}
+                </button>
+              ) : (
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', background: 'var(--bg-elevated)', border: '1px dashed var(--border)', borderRadius: '6px', padding: '12px', textAlign: 'center' }}>
+                  Upload a custom sales CSV to unlock hyperparameter tuning.
+                </div>
+              )}
+            </div>
+
+            {/* Metrics Dashboard */}
+            <div style={{ borderTop: '1px solid var(--border)', paddingTop: '20px' }}>
+              <h4 style={{ fontSize: '11px', fontWeight: '700', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '14px' }}>
+                Validation Accuracy Metrics
+              </h4>
+
+              {modelInfo?.metrics ? (
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                  <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '10px 12px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      R² Score (Accuracy)
+                    </span>
+                    <span style={{ fontSize: '16px', fontWeight: '800', color: 'var(--success)' }}>
+                      {(modelInfo.metrics.r2_score * 100).toFixed(2)}%
+                    </span>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '10px 12px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      Avg Error (MAPE)
+                    </span>
+                    <span style={{ fontSize: '16px', fontWeight: '800', color: modelInfo.metrics.mape < 15 ? 'var(--teal)' : 'var(--warning)' }}>
+                      {modelInfo.metrics.mape}%
+                    </span>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '10px 12px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      MAE
+                    </span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                      ${Math.round(modelInfo.metrics.mae).toLocaleString()}
+                    </span>
+                  </div>
+
+                  <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', padding: '10px 12px', borderRadius: '6px' }}>
+                    <span style={{ fontSize: '9px', color: 'var(--text-muted)', textTransform: 'uppercase', display: 'block', marginBottom: '2px' }}>
+                      RMSE
+                    </span>
+                    <span style={{ fontSize: '14px', fontWeight: '700', color: 'var(--text-primary)' }}>
+                      ${Math.round(modelInfo.metrics.rmse).toLocaleString()}
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div style={{ fontSize: '12px', color: 'var(--text-muted)', textAlign: 'center', padding: '12px 0' }}>
+                  No metrics computed. Train a custom model above.
+                </div>
+              )}
+            </div>
+          </SpotlightCard>
+
+          {/* ML Feature Importance Chart */}
+          {modelInfo && modelInfo.feature_importances && (
+            <SpotlightCard style={{ padding: '28px' }} className="fade-in">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+                <TrendingUp size={16} color="var(--accent)" />
+                <h3 style={{ fontSize: '15px', fontWeight: '700', color: 'var(--text-primary)' }}>Feature Predictor Weights</h3>
+              </div>
+              <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '20px' }}>
+                Relative percentage impact of features on the revenue prediction.
+              </p>
+              <div style={{ height: '260px', width: '100%' }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={importanceData} layout="vertical" margin={{ left: -10, right: 10, top: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="importanceGrad" x1="0" y1="0" x2="1" y2="0">
+                        <stop offset="0%" stopColor="var(--accent)" stopOpacity={0.2} />
+                        <stop offset="100%" stopColor="var(--accent)" stopOpacity={0.95} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={true} horizontal={false} />
+                    <XAxis type="number" stroke="var(--text-muted)" tick={{ fontSize: 9 }} tickFormatter={(v) => `${v.toFixed(0)}%`} />
+                    <YAxis dataKey="name" type="category" stroke="var(--text-muted)" tick={{ fontSize: 9 }} width={120} />
+                    <Tooltip formatter={(value) => [`${value.toFixed(1)}%`, 'Weight']} contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', fontSize: '10px', color: 'var(--text-primary)', borderRadius: '6px' }} labelStyle={{ color: 'var(--text-secondary)' }} />
+                    <Bar dataKey="importance" fill="url(#importanceGrad)" radius={[0, 4, 4, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

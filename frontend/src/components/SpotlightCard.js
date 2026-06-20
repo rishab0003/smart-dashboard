@@ -12,12 +12,23 @@ export default function SpotlightCard({ children, className = '', style = {}, ..
     cardRef.current.style.setProperty('--mouse-y', `${y}px`);
   };
 
+  // Separate layout styles for the inner wrapper
+  const {
+    display,
+    flexDirection,
+    flexWrap,
+    justifyContent,
+    alignItems,
+    gap,
+    ...outerStyle
+  } = style;
+
   return (
     <div
       ref={cardRef}
       onMouseMove={handleMouseMove}
       className={`r-card ${className}`}
-      style={{ position: 'relative', ...style }}
+      style={{ position: 'relative', ...outerStyle }}
       {...props}
     >
       {/* Spotlight overlay glow */}
@@ -36,7 +47,18 @@ export default function SpotlightCard({ children, className = '', style = {}, ..
       />
       
       {/* Content wrapper to ensure children sit above the absolute overlay if needed */}
-      <div style={{ position: 'relative', zIndex: 2, height: '100%', width: '100%', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ 
+        position: 'relative', 
+        zIndex: 2, 
+        height: '100%', 
+        width: '100%', 
+        display: display || 'flex', 
+        flexDirection: flexDirection || 'column',
+        flexWrap: flexWrap,
+        justifyContent: justifyContent,
+        alignItems: alignItems,
+        gap: gap
+      }}>
         {children}
       </div>
     </div>

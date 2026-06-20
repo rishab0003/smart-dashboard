@@ -7,6 +7,7 @@ import UploadPage from './pages/UploadPage';
 import PredictionPage from './pages/PredictionPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import LandingPage from './pages/LandingPage';
+import DataExplorerPage from './pages/DataExplorerPage';
 import Layout from './components/Layout';
 import './App.css';
 
@@ -79,6 +80,7 @@ function App() {
             <Route path="upload" element={<UploadPage />} />
             <Route path="predictions" element={<PredictionPage />} />
             <Route path="analytics" element={<AnalyticsPage />} />
+            <Route path="explorer" element={<DataExplorerPage />} />
             <Route path="*" element={<Navigate to="/dashboard" />} />
           </Route>
         ) : (

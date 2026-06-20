@@ -6,8 +6,8 @@ services:
     container_name: smart_dashboard_db
     restart: unless-stopped
     environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER:-admin}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD:-password123}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: smart_dashboard
     volumes:
       - mongodb_data:/data/db
@@ -27,7 +27,9 @@ services:
     environment:
       NODE_ENV: production
       PORT: 5000
-      MONGO_URI: mongodb://${MONGO_USER:-admin}:${MONGO_PASSWORD:-password123}@mongodb:27017/smart_dashboard?authSource=admin
+      MONGO_URI: mongodb://mongodb:27017/smart_dashboard?authSource=admin
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRE: 7d
       ML_SERVICE_URL: http://ml-service:5001

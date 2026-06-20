@@ -37,10 +37,17 @@ function Sparkline({ data = [], color = '#E85D26', height = 36, width = 90 }) {
 function SkeletonCard() {
   return (
     <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '8px', padding: '24px', overflow: 'hidden', position: 'relative' }}>
-      <div style={{ background: 'linear-gradient(90deg, #1A1A1A 0%, #222 50%, #1A1A1A 100%)', backgroundSize: '200% 100%', animation: 'shimmerLoad 1.5s infinite', height: '10px', width: '60%', borderRadius: '4px', marginBottom: '16px' }} />
-      <div style={{ background: 'linear-gradient(90deg, #1A1A1A 0%, #222 50%, #1A1A1A 100%)', backgroundSize: '200% 100%', animation: 'shimmerLoad 1.5s infinite 0.2s', height: '28px', width: '80%', borderRadius: '4px', marginBottom: '12px' }} />
-      <div style={{ background: 'linear-gradient(90deg, #1A1A1A 0%, #222 50%, #1A1A1A 100%)', backgroundSize: '200% 100%', animation: 'shimmerLoad 1.5s infinite 0.4s', height: '10px', width: '40%', borderRadius: '4px' }} />
-      <style>{`@keyframes shimmerLoad { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }`}</style>
+      <div className="skeleton-line" style={{ height: '10px', width: '60%', borderRadius: '4px', marginBottom: '16px' }} />
+      <div className="skeleton-line" style={{ height: '28px', width: '80%', borderRadius: '4px', marginBottom: '12px' }} />
+      <div className="skeleton-line" style={{ height: '10px', width: '40%', borderRadius: '4px' }} />
+      <style>{`
+        .skeleton-line {
+          background: linear-gradient(90deg, var(--bg-elevated) 0%, var(--card-hover) 50%, var(--bg-elevated) 100%);
+          background-size: 200% 100%;
+          animation: shimmerLoad 1.5s infinite;
+        }
+        @keyframes shimmerLoad { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+      `}</style>
     </div>
   );
 }
@@ -258,10 +265,10 @@ export default function DashboardPage() {
             <ResponsiveContainer width="100%" height="100%">
               {chartType === 'line' ? (
                 <LineChart data={dashboardData.trend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-secondary)' }} />
                   <Line type="monotone" dataKey="revenue" stroke="#E85D26" strokeWidth={2.5} dot={{ fill: '#E85D26', strokeWidth: 0, r: 3 }} activeDot={{ r: 5, fill: '#FF7940' }} />
                 </LineChart>
               ) : chartType === 'area' ? (
@@ -272,18 +279,18 @@ export default function DashboardPage() {
                       <stop offset="95%" stopColor="#E85D26" stopOpacity={0}/>
                     </linearGradient>
                   </defs>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-secondary)' }} />
                   <Area type="monotone" dataKey="revenue" stroke="#E85D26" strokeWidth={2.5} fillOpacity={1} fill="url(#colorTrend)" />
                 </AreaChart>
               ) : (
                 <BarChart data={dashboardData.trend}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px' }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                  <XAxis dataKey="month" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                  <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-secondary)' }} />
                   <Bar dataKey="revenue" fill="#E85D26" radius={[3, 3, 0, 0]} />
                 </BarChart>
               )}
@@ -297,12 +304,12 @@ export default function DashboardPage() {
           <div style={{ height: '240px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
-                <Pie data={dashboardData.categories} cx="50%" cy="50%" outerRadius={80} dataKey="revenue" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={{ stroke: 'var(--text-muted)' }}>
+                <Pie data={dashboardData.categories} nameKey="category" cx="50%" cy="50%" outerRadius={80} dataKey="revenue" label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`} labelLine={{ stroke: 'var(--text-muted)' }}>
                   {dashboardData.categories.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-secondary)' }} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -317,10 +324,10 @@ export default function DashboardPage() {
           <div style={{ height: '240px' }}>
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={dashboardData.regions}>
-                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                <XAxis dataKey="region" stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11 }} />
-                <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px' }} />
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="region" stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                <YAxis stroke="var(--text-muted)" tick={{ fontSize: 11, fill: 'var(--text-muted)' }} />
+                <Tooltip contentStyle={{ backgroundColor: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} labelStyle={{ color: 'var(--text-secondary)' }} />
                 <Bar dataKey="revenue" fill="#E85D26" radius={[3, 3, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>

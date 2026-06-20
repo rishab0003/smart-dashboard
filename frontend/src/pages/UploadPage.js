@@ -86,24 +86,114 @@ export default function UploadPage() {
   };
 
   const detectSchemaMapping = (headers) => {
-    const regexes = {
-      month: /^(month|date|time|order_?date)$/i,
-      year: /^(year|date|time|order_?date)$/i,
-      quantityordered: /^(quantity_?ordered|quantity|qty|units_?sold|sales_?volume|volume|count|units)$/i,
-      priceeach: /^(price_?each|unit_?price|price|rate)$/i,
-      productline: /^(product_?line|category|product)$/i,
-      territory: /^(territory|region|location|country)$/i,
+    // Each field has multiple regex patterns to match real-world column naming conventions
+    const fieldPatterns = {
+      month: [
+        /^month$/i,
+        /^month[_\s]?id$/i,
+        /^month[_\s]?num(ber)?$/i,
+        /^mo$/i,
+        /^mnth$/i,
+      ],
+      year: [
+        /^year$/i,
+        /^year[_\s]?id$/i,
+        /^yr$/i,
+        /^yyyy$/i,
+      ],
+      // A full date column (e.g. ORDERDATE) can supply BOTH month and year
+      dateColumn: [
+        /^order[_\s]?date$/i,
+        /^date$/i,
+        /^transaction[_\s]?date$/i,
+        /^sale[_\s]?date$/i,
+        /^invoice[_\s]?date$/i,
+        /^created[_\s]?at$/i,
+      ],
+      quantityordered: [
+        /^quantity[_\s]?ordered$/i,
+        /^qty[_\s]?ordered$/i,
+        /^quantity$/i,
+        /^qty$/i,
+        /^units[_\s]?sold$/i,
+        /^sales[_\s]?volume$/i,
+        /^volume$/i,
+        /^count$/i,
+        /^units$/i,
+        /^order[_\s]?qty$/i,
+        /^quantityordered$/i,
+      ],
+      priceeach: [
+        /^price[_\s]?each$/i,
+        /^unit[_\s]?price$/i,
+        /^price$/i,
+        /^rate$/i,
+        /^msrp$/i,
+        /^amount$/i,
+        /^priceeach$/i,
+        /^unit[_\s]?cost$/i,
+        /^sale[_\s]?price$/i,
+      ],
+      productline: [
+        /^product[_\s]?line$/i,
+        /^productline$/i,
+        /^category$/i,
+        /^product[_\s]?category$/i,
+        /^product[_\s]?type$/i,
+        /^product$/i,
+        /^item[_\s]?category$/i,
+        /^line$/i,
+        /^segment$/i,
+      ],
+      territory: [
+        /^territory$/i,
+        /^region$/i,
+        /^location$/i,
+        /^country$/i,
+        /^area$/i,
+        /^zone$/i,
+        /^market$/i,
+        /^geo$/i,
+        /^sales[_\s]?region$/i,
+      ],
     };
-    
+
     const mapping = {};
+    const dateColFound = {};
+
     headers.forEach(header => {
       const h = header.toLowerCase().trim();
-      for (const [field, regex] of Object.entries(regexes)) {
-        if (regex.test(h)) {
-          mapping[field] = header;
+
+      // Check for full-date columns first — they can provide both month + year
+      for (const pattern of fieldPatterns.dateColumn) {
+        if (pattern.test(h)) {
+          dateColFound.column = header;
+          break;
+        }
+      }
+
+      // Check all non-date fields
+      for (const [field, patterns] of Object.entries(fieldPatterns)) {
+        if (field === 'dateColumn') continue;
+        if (mapping[field]) continue; // already found, first match wins
+        for (const pattern of patterns) {
+          if (pattern.test(h)) {
+            mapping[field] = header;
+            break;
+          }
         }
       }
     });
+
+    // If no explicit month/year columns found but a date column exists,
+    // use that column as the source for both (server-side will parse it)
+    if (!mapping.month && dateColFound.column) {
+      mapping.month = `${dateColFound.column} (parsed)`;
+    }
+    if (!mapping.year && dateColFound.column) {
+      mapping.year = `${dateColFound.column} (parsed)`;
+    }
+
     return mapping;
   };
 
@@ -289,7 +379,7 @@ export default function UploadPage() {
               const isDone = pipelineStep > s.step || (s.step === 4 && pipelineStep === 4);
               const isActive = pipelineStep === s.step;
               const color = isDone ? 'var(--success)' : isActive ? 'var(--accent)' : 'var(--text-muted)';
-              const bg = isDone ? 'rgba(76,175,125,0.06)' : isActive ? 'var(--accent-dim)' : 'rgba(255,255,255,0.02)';
+              const bg = isDone ? 'rgba(76,175,125,0.06)' : isActive ? 'var(--accent-dim)' : 'var(--bg-elevated)';
               const border = isDone ? '1px solid rgba(76,175,125,0.2)' : isActive ? '1px solid rgba(232,93,38,0.2)' : '1px solid var(--border)';
               
               return (
@@ -319,39 +409,67 @@ export default function UploadPage() {
             </div>
           )}
 
-          {/* Schema Audit Breakdown */}
-          {pipelineStep >= 2 && stagingFile && (
-            <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '20px', marginBottom: '24px' }} className="fade-in">
-              <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)', marginBottom: '12px' }}>Schema Verification Audit</h4>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
-                {[
-                  { field: 'month', required: true },
-                  { field: 'year', required: true },
-                  { field: 'quantityordered', required: true },
-                  { field: 'priceeach', required: true },
-                  { field: 'productline', required: true },
-                  { field: 'territory', required: true }
-                ].map(item => {
-                  const mappedCol = stagingFile.mapping[item.field];
-                  return (
-                    <div key={item.field} style={{ display: 'flex', alignItems: 'center', justifySpace: 'between', padding: '10px 12px', background: 'var(--bg)', border: '1px solid var(--border)', borderRadius: '4px' }}>
-                      <div style={{ flex: 1 }}>
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase' }}>{item.field}</span>
-                        <span style={{ fontSize: '12px', fontWeight: '600', color: mappedCol ? 'var(--text-primary)' : 'var(--error)' }}>
-                          {mappedCol ? mappedCol : 'Missing'}
-                        </span>
+          {pipelineStep >= 2 && stagingFile && (() => {
+            const fields = [
+              { field: 'month', label: 'Month', required: true },
+              { field: 'year', label: 'Year', required: true },
+              { field: 'quantityordered', label: 'Quantity Ordered', required: true },
+              { field: 'priceeach', label: 'Price Each', required: true },
+              { field: 'productline', label: 'Product Line', required: true },
+              { field: 'territory', label: 'Territory', required: true },
+            ];
+            const passCount = fields.filter(f => !!stagingFile.mapping[f.field]).length;
+            const allPass = passCount === fields.length;
+            return (
+              <div style={{ background: 'var(--bg-elevated)', border: `1px solid ${allPass ? 'rgba(76,175,125,0.25)' : 'rgba(220,38,38,0.2)'}`, borderRadius: '8px', padding: '20px', marginBottom: '24px' }} className="fade-in">
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
+                  <h4 style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Schema Verification Audit</h4>
+                  <span style={{
+                    fontSize: '10px', fontWeight: '700', padding: '3px 10px', borderRadius: '20px',
+                    background: allPass ? 'var(--success-dim)' : 'var(--error-dim)',
+                    color: allPass ? 'var(--success)' : 'var(--error)',
+                    border: `1px solid ${allPass ? 'rgba(76,175,125,0.3)' : 'rgba(220,38,38,0.3)'}`,
+                  }}>
+                    {passCount}/{fields.length} fields matched
+                  </span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px' }}>
+                  {fields.map(item => {
+                    const mappedCol = stagingFile.mapping[item.field];
+                    const isParsed = mappedCol && mappedCol.includes('(parsed)');
+                    return (
+                      <div key={item.field} style={{
+                        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                        padding: '10px 12px',
+                        background: mappedCol ? (isParsed ? 'rgba(232,162,38,0.06)' : 'rgba(76,175,125,0.04)') : 'rgba(220,38,38,0.04)',
+                        border: `1px solid ${mappedCol ? (isParsed ? 'rgba(232,162,38,0.2)' : 'rgba(76,175,125,0.18)') : 'rgba(220,38,38,0.18)'}`,
+                        borderRadius: '6px', gap: '8px'
+                      }}>
+                        <div style={{ flex: 1, minWidth: 0 }}>
+                          <span style={{ fontSize: '9px', color: 'var(--text-muted)', display: 'block', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '3px' }}>{item.label}</span>
+                          <span style={{ fontSize: '11px', fontWeight: '600', color: mappedCol ? 'var(--text-primary)' : 'var(--error)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', display: 'block' }}>
+                            {mappedCol || '— Not found'}
+                          </span>
+                        </div>
+                        {mappedCol ? (
+                          <span style={{ fontSize: '8px', fontWeight: '700', color: isParsed ? 'var(--warning)' : 'var(--success)', background: isParsed ? 'var(--warning-dim)' : 'var(--success-dim)', padding: '2px 6px', borderRadius: '3px', flexShrink: 0 }}>
+                            {isParsed ? 'PARSED' : 'MATCHED'}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '8px', fontWeight: '700', color: 'var(--error)', background: 'var(--error-dim)', padding: '2px 6px', borderRadius: '3px', flexShrink: 0 }}>MISSING</span>
+                        )}
                       </div>
-                      {mappedCol ? (
-                        <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--success)', background: 'var(--success-dim)', padding: '2px 6px', borderRadius: '2px' }}>PASSED</span>
-                      ) : (
-                        <span style={{ fontSize: '9px', fontWeight: '700', color: 'var(--error)', background: 'var(--error-dim)', padding: '2px 6px', borderRadius: '2px' }}>FAILED</span>
-                      )}
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
+                {!allPass && (
+                  <p style={{ fontSize: '11px', color: 'var(--warning)', marginTop: '12px', padding: '8px 12px', background: 'rgba(217,119,6,0.06)', border: '1px solid rgba(217,119,6,0.15)', borderRadius: '4px' }}>
+                    ⚠️ Some required fields could not be auto-detected. The upload will still proceed but analytics may be limited. Rename your columns to match the reference layout below.
+                  </p>
+                )}
               </div>
-            </div>
-          )}
+            );
+          })()}
 
           {/* Data Preview Spreadsheet */}
           {pipelineStep >= 2 && stagingFile && (
@@ -360,7 +478,7 @@ export default function UploadPage() {
               <div style={{ overflowX: 'auto', border: '1px solid var(--border)', borderRadius: '6px' }}>
                 <table className="r-table" style={{ background: 'var(--bg-elevated)', minWidth: '600px' }}>
                   <thead>
-                    <tr style={{ background: 'rgba(255,255,255,0.01)' }}>
+                    <tr style={{ background: 'var(--bg-elevated)' }}>
                       {stagingFile.headers.slice(0, 6).map(h => (
                         <th key={h} style={{ fontSize: '11px', padding: '10px 14px' }}>{h}</th>
                       ))}

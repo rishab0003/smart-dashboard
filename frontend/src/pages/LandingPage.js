@@ -1,8 +1,10 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { flushSync } from 'react-dom';
 import { Link } from 'react-router-dom';
 import {
   BarChart3, TrendingUp, Upload, Brain, ArrowRight,
-  CheckCircle, Star, Zap, Database, Shield, Globe, ChevronRight
+  CheckCircle, Star, Zap, Database, Shield, Globe, ChevronRight,
+  Sun, Moon
 } from 'lucide-react';
 import {
   AreaChart, Area, ResponsiveContainer, Tooltip, CartesianGrid, XAxis, YAxis,
@@ -122,7 +124,7 @@ function HeroPreview() {
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E05252' }} />
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#E8A226' }} />
         <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: '#4CAF7D' }} />
-        <span style={{ marginLeft: '8px', color: 'rgba(255,255,255,0.25)', fontSize: '10px', letterSpacing: '0.05em' }}>SmartAnalytics — Dashboard</span>
+        <span style={{ marginLeft: '8px', color: 'var(--text-muted)', fontSize: '10px', letterSpacing: '0.05em' }}>SmartAnalytics — Dashboard</span>
         <div style={{ marginLeft: 'auto' }} className="r-live-badge">
           <div className="r-pulse-dot" style={{ width: '6px', height: '6px' }} />
           LIVE
@@ -137,9 +139,9 @@ function HeroPreview() {
           { label: 'Avg AOV', value: '$126',   spark: [60,58,62,55,57,60,58,63], change: '-0.5%', up: false },
           { label: 'Profit',  value: '$382K',  spark: [15,22,20,28,32,30,40,45], change: '+18%', up: true },
         ].map(c => (
-          <div key={c.label} style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '8px 10px' }}>
-            <div style={{ fontSize: '9px', color: '#4A4A4A', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{c.label}</div>
-            <div style={{ fontSize: '14px', fontWeight: '800', color: '#F0EDE8', letterSpacing: '-0.02em', marginBottom: '6px' }}>{c.value}</div>
+          <div key={c.label} style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '8px 10px' }}>
+            <div style={{ fontSize: '9px', color: 'var(--text-muted)', fontWeight: '600', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '6px' }}>{c.label}</div>
+            <div style={{ fontSize: '14px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.02em', marginBottom: '6px' }}>{c.value}</div>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Sparkline data={c.spark} color={c.up ? '#4CAF7D' : '#E05252'} width={50} />
               <span style={{ fontSize: '9px', fontWeight: '700', color: c.up ? '#4CAF7D' : '#E05252' }}>{c.change}</span>
@@ -150,8 +152,8 @@ function HeroPreview() {
 
       {/* Charts row */}
       <div style={{ display: 'grid', gridTemplateColumns: '1.4fr 1fr', gap: '8px' }}>
-        <div style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '12px' }}>
-          <div style={{ fontSize: '9px', fontWeight: '600', color: '#4A4A4A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Revenue Trend</div>
+        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '12px' }}>
+          <div style={{ fontSize: '9px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>Revenue Trend</div>
           <ResponsiveContainer width="100%" height={90}>
             <AreaChart data={HERO_REVENUE} margin={{ top: 4, right: 4, bottom: 0, left: -30 }}>
               <defs>
@@ -160,22 +162,22 @@ function HeroPreview() {
                   <stop offset="100%" stopColor="#E85D26" stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="m" tick={{ fontSize: 8, fill: '#4A4A4A' }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" />
+              <XAxis dataKey="m" tick={{ fontSize: 8, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
               <YAxis tick={false} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#141414', border: '1px solid #222', borderRadius: '4px', fontSize: '10px', color: '#F0EDE8' }} itemStyle={{ color: '#E85D26' }} />
+              <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '10px', color: 'var(--text-primary)' }} itemStyle={{ color: '#E85D26' }} />
               <Area type="monotone" dataKey="v" stroke="#E85D26" strokeWidth={1.5} fill="url(#hg)" dot={false} />
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div style={{ background: '#1A1A1A', border: '1px solid rgba(255,255,255,0.06)', borderRadius: '6px', padding: '12px' }}>
-          <div style={{ fontSize: '9px', fontWeight: '600', color: '#4A4A4A', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>By Region</div>
+        <div style={{ background: 'var(--bg-elevated)', border: '1px solid var(--border)', borderRadius: '6px', padding: '12px' }}>
+          <div style={{ fontSize: '9px', fontWeight: '600', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginBottom: '10px' }}>By Region</div>
           <ResponsiveContainer width="100%" height={90}>
             <BarChart data={HERO_BAR} margin={{ top: 4, right: 4, bottom: 0, left: -24 }}>
-              <CartesianGrid strokeDasharray="2 4" stroke="rgba(255,255,255,0.04)" />
-              <XAxis dataKey="n" tick={{ fontSize: 8, fill: '#4A4A4A' }} axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="2 4" stroke="var(--border)" />
+              <XAxis dataKey="n" tick={{ fontSize: 8, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
               <YAxis tick={false} axisLine={false} tickLine={false} />
-              <Tooltip contentStyle={{ background: '#141414', border: '1px solid #222', borderRadius: '4px', fontSize: '10px', color: '#F0EDE8' }} itemStyle={{ color: '#E85D26' }} />
+              <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '4px', fontSize: '10px', color: 'var(--text-primary)' }} itemStyle={{ color: '#E85D26' }} />
               <Bar dataKey="v" fill="#E85D26" radius={[2, 2, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
@@ -186,12 +188,12 @@ function HeroPreview() {
       <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
         <div style={{ flex: 1, background: 'rgba(232,93,38,0.08)', border: '1px solid rgba(232,93,38,0.15)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Brain size={12} color="#E85D26" />
-          <span style={{ fontSize: '9px', fontWeight: '600', color: '#9A9590' }}>ML Prediction ready</span>
+          <span style={{ fontSize: '9px', fontWeight: '600', color: 'var(--text-secondary)' }}>ML Prediction ready</span>
           <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '800', color: '#E85D26' }}>$147K</span>
         </div>
         <div style={{ flex: 1, background: 'rgba(76,175,125,0.08)', border: '1px solid rgba(76,175,125,0.15)', borderRadius: '6px', padding: '8px 12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Zap size={12} color="#4CAF7D" />
-          <span style={{ fontSize: '9px', fontWeight: '600', color: '#9A9590' }}>Model accuracy</span>
+          <span style={{ fontSize: '9px', fontWeight: '600', color: 'var(--text-secondary)' }}>Model accuracy</span>
           <span style={{ marginLeft: 'auto', fontSize: '10px', fontWeight: '800', color: '#4CAF7D' }}>98.2%</span>
         </div>
       </div>
@@ -208,6 +210,50 @@ export default function LandingPage({ isAuthenticated }) {
   const statRefs = [ref0, ref1, ref2, ref3];
   const statVals = [stat0, stat1, stat2, stat3];
 
+  /* ── Theme toggle (reads/syncs with Layout's localStorage key) ── */
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved ? saved === 'dark' : true;
+  });
+
+  // Keep <html> class in sync
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isDark) {
+      html.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = (e) => {
+    const btn = e?.currentTarget;
+    const rect = btn?.getBoundingClientRect();
+    const x = rect ? Math.round(rect.left + rect.width / 2) : Math.round(window.innerWidth / 2);
+    const y = rect ? Math.round(rect.top + rect.height / 2) : Math.round(window.innerHeight / 2);
+    const maxRadius = Math.hypot(
+      Math.max(x, window.innerWidth - x),
+      Math.max(y, window.innerHeight - y)
+    );
+    if (!document.startViewTransition) {
+      document.documentElement.classList.add('theme-transitioning');
+      setIsDark(d => !d);
+      setTimeout(() => document.documentElement.classList.remove('theme-transitioning'), 450);
+      return;
+    }
+    const transition = document.startViewTransition(() => {
+      flushSync(() => setIsDark(d => !d));
+    });
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        { clipPath: [`circle(0px at ${x}px ${y}px)`, `circle(${maxRadius}px at ${x}px ${y}px)`] },
+        { duration: 550, easing: 'cubic-bezier(0.22, 1, 0.36, 1)', pseudoElement: '::view-transition-new(root)' }
+      );
+    });
+  };
+
   /* Animated grid line */
   const gridRef = useRef(null);
 
@@ -217,10 +263,12 @@ export default function LandingPage({ isAuthenticated }) {
       {/* ── NAVBAR ────────────────────────────────────────────── */}
       <nav style={{
         position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
-        background: 'rgba(10,10,10,0.85)', backdropFilter: 'blur(20px) saturate(180%)',
+        background: isDark ? 'rgba(10,10,10,0.85)' : 'rgba(244,242,239,0.88)',
+        backdropFilter: 'blur(20px) saturate(180%)',
         borderBottom: '1px solid var(--border)',
         padding: '0 32px', height: '64px',
         display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        transition: 'background 400ms ease',
       }}>
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '10px', textDecoration: 'none' }}>
           <div style={{ width: '32px', height: '32px', background: 'var(--accent)', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 16px rgba(232,93,38,0.4)' }}>
@@ -229,6 +277,26 @@ export default function LandingPage({ isAuthenticated }) {
           <span style={{ fontSize: '15px', fontWeight: '800', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>SmartAnalytics</span>
         </Link>
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {/* Theme toggle */}
+          <button
+            id="landing-theme-toggle"
+            onClick={toggleTheme}
+            title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+            style={{
+              width: '36px', height: '36px', borderRadius: '8px',
+              background: 'var(--card-bg)', border: '1px solid var(--border)',
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              cursor: 'pointer', transition: 'all 200ms ease',
+              color: 'var(--text-secondary)',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.background = 'var(--card-hover)'; e.currentTarget.style.borderColor = 'var(--accent)'; }}
+            onMouseLeave={e => { e.currentTarget.style.background = 'var(--card-bg)'; e.currentTarget.style.borderColor = 'var(--border)'; }}
+          >
+            {isDark
+              ? <Sun size={16} color="var(--accent)" />
+              : <Moon size={16} color="var(--accent)" />
+            }
+          </button>
           {isAuthenticated ? (
             <Link to="/dashboard" className="r-btn r-btn-primary r-btn-sm" style={{ textDecoration: 'none' }}>Go to Dashboard <ArrowRight size={13} /></Link>
           ) : (
@@ -385,7 +453,7 @@ export default function LandingPage({ isAuthenticated }) {
             return (
               <div key={i} className={`reveal delay-${(i + 1) * 100}`} style={{ position: 'relative', background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-md)', padding: '36px 32px', overflow: 'hidden' }}>
                 {/* Big number watermark */}
-                <div style={{ position: 'absolute', top: '-10px', right: '16px', fontSize: '80px', fontWeight: '900', color: 'rgba(255,255,255,0.03)', lineHeight: 1, letterSpacing: '-0.04em', userSelect: 'none' }}>{s.n}</div>
+                <div style={{ position: 'absolute', top: '-10px', right: '16px', fontSize: '80px', fontWeight: '900', color: isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.04)', lineHeight: 1, letterSpacing: '-0.04em', userSelect: 'none' }}>{s.n}</div>
                 {/* Orange top border accent */}
                 <div style={{ position: 'absolute', top: 0, left: 0, right: 0, height: '2px', background: `linear-gradient(90deg, var(--accent), transparent)` }} />
                 <div style={{ width: '40px', height: '40px', background: 'var(--accent-dim)', borderRadius: 'var(--radius-sm)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '20px' }}>
@@ -404,7 +472,7 @@ export default function LandingPage({ isAuthenticated }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '80px', alignItems: 'center' }}>
           {/* Left — charts preview */}
           <div className="reveal">
-            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: '0 32px 80px rgba(0,0,0,0.5)' }}>
+            <div style={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: 'var(--radius-lg)', overflow: 'hidden', boxShadow: isDark ? '0 32px 80px rgba(0,0,0,0.5)' : '0 16px 48px rgba(0,0,0,0.12)' }}>
               {/* header bar */}
               <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border)', display: 'flex', alignItems: 'center', gap: '12px', background: 'var(--bg-elevated)' }}>
                 <div style={{ display: 'flex', gap: '6px' }}>
@@ -421,10 +489,10 @@ export default function LandingPage({ isAuthenticated }) {
                         <stop offset="100%" stopColor="#E85D26" stopOpacity={0} />
                       </linearGradient>
                     </defs>
-                    <CartesianGrid strokeDasharray="3 6" stroke="rgba(255,255,255,0.04)" />
-                    <XAxis dataKey="m" tick={{ fontSize: 10, fill: '#4A4A4A' }} axisLine={false} tickLine={false} />
-                    <YAxis tick={{ fontSize: 10, fill: '#4A4A4A' }} axisLine={false} tickLine={false} />
-                    <Tooltip contentStyle={{ background: '#141414', border: '1px solid #222', borderRadius: '6px', fontSize: '12px', color: '#F0EDE8' }} itemStyle={{ color: '#E85D26' }} />
+                    <CartesianGrid strokeDasharray="3 6" stroke="var(--border)" />
+                    <XAxis dataKey="m" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                    <YAxis tick={{ fontSize: 10, fill: 'var(--text-muted)' }} axisLine={false} tickLine={false} />
+                    <Tooltip contentStyle={{ background: 'var(--card-bg)', border: '1px solid var(--border)', borderRadius: '6px', fontSize: '12px', color: 'var(--text-primary)' }} itemStyle={{ color: '#E85D26' }} />
                     <Area type="monotone" dataKey="v" name="Revenue (K)" stroke="#E85D26" strokeWidth={2} fill="url(#cg2)" dot={false} activeDot={{ r: 4, fill: '#E85D26', stroke: '#FF7940', strokeWidth: 2 }} />
                   </AreaChart>
                 </ResponsiveContainer>

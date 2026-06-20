@@ -24,10 +24,10 @@ app.use(cors({
   credentials: true // allow cookies
 }));
 
-// Rate limiting: prevent abuse (max 100 requests per 15 minutes per IP)
+// Rate limiting: prevent abuse (max 2000 requests per 15 minutes per IP)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100,
+  max: 2000,
   message: { error: 'Too many requests, please try again later' }
 });
 app.use('/api/', limiter);

@@ -1,13 +1,113 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { flushSync } from 'react-dom';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import {
   LayoutDashboard, Upload, Brain, BarChart3,
-  LogOut, Menu, X, Bell, ChevronRight, Zap
+  LogOut, Menu, X, Bell, ChevronRight, Zap,
+  CheckCheck, TrendingUp, FileUp, AlertCircle, Cpu,
+  Sun, Moon, Database
 } from 'lucide-react';
+
+const INITIAL_NOTIFICATIONS = [
+  { id: 1, icon: FileUp,    color: '#5DB5B0', title: 'CSV Upload Complete',        body: 'sales_data_2024.csv processed successfully.', time: '2 min ago',  read: false },
+  { id: 2, icon: Cpu,       color: '#E85D26', title: 'ML Model Retrained',         body: 'Your custom model achieved 94.2% accuracy.',   time: '18 min ago', read: false },
+  { id: 3, icon: TrendingUp,color: '#A78BFA', title: 'Prediction Ready',           body: 'Q3 forecast generated for Classic Cars line.',  time: '1 hr ago',   read: false },
+  { id: 4, icon: AlertCircle,color:'#E8A226', title: 'Data Validation Warning',    body: '3 rows skipped — missing Region field.',       time: '3 hr ago',   read: true  },
+  { id: 5, icon: FileUp,    color: '#4CAF7D', title: 'Export Downloaded',          body: 'analytics_report.csv saved to your device.',  time: 'Yesterday',  read: true  },
+];
 
 export default function Layout({ user, logout }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isDark, setIsDark] = useState(() => {
+    const saved = localStorage.getItem('theme');
+    return saved ? saved === 'dark' : true; // default dark
+  });
+  const [notifOpen, setNotifOpen]     = useState(false);
+  const [notifications, setNotifications] = useState(INITIAL_NOTIFICATIONS);
+  const notifRef = useRef(null);
   const location = useLocation();
+  const [hoveredIndex, setHoveredIndex] = useState(null);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllRead = useCallback(() => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  }, []);
+
+  const markOneRead = useCallback((id) => {
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
+  }, []);
+
+  // Apply theme class to <html> and persist
+  useEffect(() => {
+    const html = document.documentElement;
+    if (isDark) {
+      html.classList.remove('light');
+      localStorage.setItem('theme', 'dark');
+    } else {
+      html.classList.add('light');
+      localStorage.setItem('theme', 'light');
+    }
+  }, [isDark]);
+
+  const toggleTheme = (e) => {
+    const btn = e?.currentTarget;
+    const rect = btn?.getBoundingClientRect();
+    // Origin: centre of the toggle button, fallback to center of window
+    const x = rect ? Math.round(rect.left + rect.width  / 2) : Math.round(window.innerWidth / 2);
+    const y = rect ? Math.round(rect.top  + rect.height / 2) : Math.round(window.innerHeight / 2);
+
+    // Radius large enough to cover the entire viewport from the origin
+    const maxRadius = Math.hypot(
+      Math.max(x, window.innerWidth  - x),
+      Math.max(y, window.innerHeight - y)
+    );
+
+    if (!document.startViewTransition) {
+      // Fallback for older browsers
+      const html = document.documentElement;
+      html.classList.add('theme-transitioning');
+      setIsDark(d => !d);
+      setTimeout(() => html.classList.remove('theme-transitioning'), 450);
+      return;
+    }
+
+    // Use View Transitions API for a circular reveal from the button
+    const transition = document.startViewTransition(() => {
+      // flushSync forces React to render synchronously so the html.light
+      // class is applied INSIDE the transition snapshot callback
+      flushSync(() => setIsDark(d => !d));
+    });
+
+    // Once the browser has captured both before/after snapshots, animate
+    transition.ready.then(() => {
+      document.documentElement.animate(
+        {
+          clipPath: [
+            `circle(0px at ${x}px ${y}px)`,
+            `circle(${maxRadius}px at ${x}px ${y}px)`,
+          ],
+        },
+        {
+          duration: 550,
+          easing: 'cubic-bezier(0.22, 1, 0.36, 1)', // spring-like ease-out
+          pseudoElement: '::view-transition-new(root)',
+        }
+      );
+    });
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    if (!notifOpen) return;
+    const handler = (e) => {
+      if (notifRef.current && !notifRef.current.contains(e.target)) {
+        setNotifOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [notifOpen]);
 
   // Scrolling Marquee Ticker Feed
   const [tickerItems, setTickerItems] = useState([
@@ -42,8 +142,10 @@ export default function Layout({ user, logout }) {
     { name: 'Analytics',   href: '/analytics',   icon: BarChart3,       label: 'Data Insights' },
     { name: 'Upload Data', href: '/upload',       icon: Upload,          label: 'Import CSV' },
     { name: 'Predictions', href: '/predictions',  icon: Brain,           label: 'ML Forecast' },
+    { name: 'Data Explorer', href: '/explorer',    icon: Database,        label: 'Spreadsheet' },
   ];
   const isActive = (path) => location.pathname === path;
+  const activeIndex = navigation.findIndex(item => isActive(item.href));
 
   const SidebarContent = () => (
     <>
@@ -86,35 +188,61 @@ export default function Layout({ user, logout }) {
       </div>
 
       {/* ── Nav links ────────────────────────────── */}
-      <nav style={{ flex: 1, padding: '4px 12px', overflow: 'hidden' }}>
-        {navigation.map((item) => {
+      <nav style={{ flex: 1, padding: '4px 12px', overflow: 'hidden', position: 'relative' }} onMouseLeave={() => setHoveredIndex(null)}>
+        {/* Sliding active highlight background */}
+        <div
+          style={{
+            position: 'absolute',
+            left: '12px',
+            right: '12px',
+            height: '46px',
+            borderRadius: '6px',
+            background: 'var(--accent-dim)',
+            borderLeft: '2px solid var(--accent)',
+            pointerEvents: 'none',
+            transition: 'transform 260ms cubic-bezier(0.25, 1, 0.5, 1), opacity 150ms',
+            opacity: (hoveredIndex !== null || activeIndex !== -1) ? 1 : 0,
+            transform: `translateY(${(hoveredIndex !== null ? hoveredIndex : (activeIndex !== -1 ? activeIndex : 0)) * 50}px)`,
+            zIndex: 0
+          }}
+        />
+
+        {navigation.map((item, index) => {
           const Icon = item.icon;
           const active = isActive(item.href);
+          const isHighlighted = hoveredIndex !== null ? hoveredIndex === index : active;
           return (
             <Link
               key={item.name}
               to={item.href}
               onClick={() => setSidebarOpen(false)}
+              onMouseEnter={() => setHoveredIndex(index)}
               style={{
                 display: 'flex', alignItems: 'center', gap: '10px',
                 padding: '9px 12px', borderRadius: '6px',
-                textDecoration: 'none', margin: '2px 0',
-                background: active ? 'var(--accent-dim)' : 'transparent',
-                color: active ? 'var(--accent)' : 'var(--text-secondary)',
+                textDecoration: 'none', margin: '4px 0',
+                color: isHighlighted ? 'var(--accent)' : 'var(--text-secondary)',
                 fontSize: '13px', fontWeight: active ? '600' : '500',
-                transition: 'all 180ms var(--ease)',
+                transition: 'color 220ms var(--ease)',
                 position: 'relative',
-                borderLeft: active ? '2px solid var(--accent)' : '2px solid transparent',
+                zIndex: 1,
+                height: '46px',
+                boxSizing: 'border-box'
               }}
-              onMouseEnter={e => { if (!active) { e.currentTarget.style.background = 'rgba(255,255,255,0.04)'; e.currentTarget.style.color = 'var(--text-primary)'; } }}
-              onMouseLeave={e => { if (!active) { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = 'var(--text-secondary)'; } }}
             >
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '28px', height: '28px', background: active ? 'rgba(232,93,38,0.15)' : 'rgba(255,255,255,0.04)', borderRadius: '5px', flexShrink: 0, transition: 'background 180ms' }}>
+              <div style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '28px', height: '28px',
+                background: isHighlighted ? 'rgba(232,93,38,0.15)' : 'rgba(255,255,255,0.04)',
+                borderRadius: '5px', flexShrink: 0,
+                transition: 'background 220ms, color 220ms',
+                color: isHighlighted ? 'var(--accent)' : 'inherit'
+              }}>
                 <Icon size={14} />
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ lineHeight: 1.2 }}>{item.name}</div>
-                <div style={{ fontSize: '10px', color: active ? 'rgba(232,93,38,0.7)' : 'var(--text-muted)', fontWeight: '400', marginTop: '1px' }}>{item.label}</div>
+                <div style={{ fontSize: '10px', color: isHighlighted ? 'rgba(232,93,38,0.7)' : 'var(--text-muted)', fontWeight: '400', marginTop: '1px', transition: 'color 220ms' }}>{item.label}</div>
               </div>
               {active && <ChevronRight size={11} style={{ flexShrink: 0, opacity: 0.6 }} />}
             </Link>
@@ -195,15 +323,15 @@ export default function Layout({ user, logout }) {
       <div style={{ flex: 1, marginLeft: '240px', display: 'flex', flexDirection: 'column', overflow: 'hidden', minWidth: 0 }} className="main-area">
 
         {/* ── Top Header Bar ──────────────────────────────── */}
-        <header style={{
-          height: '60px',
-          background: 'rgba(15,15,15,0.95)',
-          backdropFilter: 'blur(16px)',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-          padding: '0 28px', flexShrink: 0,
-          position: 'sticky', top: 0, zIndex: 30,
-        }}>
+        <header
+          className="app-header"
+          style={{
+            height: '60px',
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            padding: '0 28px', flexShrink: 0,
+            position: 'sticky', top: 0, zIndex: 30,
+          }}
+        >
           {/* Mobile hamburger */}
           <button onClick={() => setSidebarOpen(true)} style={{ display: 'none', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)' }} className="mobile-menu-btn">
             <Menu size={20} />
@@ -226,11 +354,167 @@ export default function Layout({ user, logout }) {
               <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--success)', letterSpacing: '0.06em' }}>LIVE</span>
             </div>
 
-            {/* Bell */}
-            <button style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', position: 'relative', display: 'flex' }}>
-              <Bell size={17} />
-              <span style={{ position: 'absolute', top: '-2px', right: '-2px', width: '6px', height: '6px', background: 'var(--accent)', borderRadius: '50%', border: '1px solid var(--bg)' }} />
+            {/* Theme toggle */}
+            <button
+              id="theme-toggle"
+              onClick={(e) => toggleTheme(e)}
+              title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+              style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                width: '32px', height: '32px',
+                background: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)',
+                border: '1px solid var(--border)',
+                borderRadius: '8px', cursor: 'pointer',
+                color: isDark ? '#E8A226' : '#52525B',
+                flexShrink: 0,
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = isDark ? 'rgba(232,162,38,0.12)' : 'rgba(0,0,0,0.1)';
+                e.currentTarget.style.borderColor = isDark ? 'rgba(232,162,38,0.3)' : 'rgba(0,0,0,0.18)';
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.06)';
+                e.currentTarget.style.borderColor = 'var(--border)';
+              }}
+            >
+              {isDark
+                ? <Sun  size={15} strokeWidth={2} />
+                : <Moon size={15} strokeWidth={2} />}
             </button>
+
+            {/* Bell + Notification Dropdown */}
+            <div ref={notifRef} style={{ position: 'relative' }}>
+              <button
+                onClick={() => setNotifOpen(o => !o)}
+                style={{
+                  background: notifOpen ? 'rgba(232,93,38,0.1)' : 'none',
+                  border: notifOpen ? '1px solid rgba(232,93,38,0.25)' : '1px solid transparent',
+                  borderRadius: '6px', padding: '5px 6px',
+                  cursor: 'pointer', color: notifOpen ? 'var(--accent)' : 'var(--text-muted)',
+                  position: 'relative', display: 'flex',
+                  transition: 'all 180ms var(--ease)',
+                }}
+              >
+                <Bell size={17} />
+                {unreadCount > 0 && (
+                  <span style={{
+                    position: 'absolute', top: '-4px', right: '-4px',
+                    minWidth: '16px', height: '16px', padding: '0 4px',
+                    background: 'var(--accent)', borderRadius: '8px',
+                    border: '1.5px solid var(--bg)',
+                    fontSize: '9px', fontWeight: '800', color: '#fff',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    letterSpacing: '-0.02em',
+                  }}>{unreadCount}</span>
+                )}
+              </button>
+
+              {/* Dropdown panel */}
+              {notifOpen && (
+                <div style={{
+                  position: 'absolute', top: 'calc(100% + 10px)', right: '-8px',
+                  width: '340px', zIndex: 100,
+                  background: isDark ? 'rgba(14,14,14,0.92)' : 'rgba(255,255,255,0.95)',
+                  backdropFilter: 'blur(28px) saturate(160%)',
+                  WebkitBackdropFilter: 'blur(28px) saturate(160%)',
+                  border: isDark ? '1px solid rgba(255,255,255,0.09)' : '1px solid rgba(0,0,0,0.09)',
+                  borderRadius: '12px',
+                  boxShadow: isDark 
+                    ? '0 24px 64px rgba(0,0,0,0.7), 0 0 0 1px rgba(232,93,38,0.06), inset 0 1px 0 rgba(255,255,255,0.06)' 
+                    : '0 24px 64px rgba(0,0,0,0.08), 0 0 0 1px rgba(232,93,38,0.04), inset 0 1px 0 rgba(255,255,255,0.4)',
+                  overflow: 'hidden',
+                  animation: 'fadeIn 0.18s ease-out both',
+                }}>
+                  {/* Panel header */}
+                  <div style={{
+                    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                    padding: '14px 16px 12px',
+                    borderBottom: isDark ? '1px solid rgba(255,255,255,0.06)' : '1px solid rgba(0,0,0,0.06)',
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.03) 0%, transparent 100%)',
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <Bell size={13} color="var(--accent)" />
+                      <span style={{ fontSize: '13px', fontWeight: '700', color: 'var(--text-primary)' }}>Notifications</span>
+                      {unreadCount > 0 && (
+                        <span style={{ fontSize: '10px', fontWeight: '700', color: 'var(--accent)', background: 'rgba(232,93,38,0.12)', border: '1px solid rgba(232,93,38,0.2)', borderRadius: '10px', padding: '1px 7px' }}>
+                          {unreadCount} new
+                        </span>
+                      )}
+                    </div>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', color: 'var(--text-muted)', fontSize: '11px', fontWeight: '600', transition: 'color 150ms' }}
+                        onMouseEnter={e => e.currentTarget.style.color = 'var(--text-primary)'}
+                        onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
+                      >
+                        <CheckCheck size={12} />
+                        Mark all read
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Notification list */}
+                  <div style={{ maxHeight: '340px', overflowY: 'auto' }}>
+                    {notifications.map((notif, i) => {
+                      const Icon = notif.icon;
+                      return (
+                        <div
+                          key={notif.id}
+                          onClick={() => markOneRead(notif.id)}
+                          style={{
+                            display: 'flex', gap: '12px', padding: '12px 16px',
+                            borderBottom: i < notifications.length - 1 ? (isDark ? '1px solid rgba(255,255,255,0.04)' : '1px solid rgba(0,0,0,0.04)') : 'none',
+                            background: notif.read ? 'transparent' : (isDark ? 'rgba(232,93,38,0.03)' : 'rgba(232,93,38,0.05)'),
+                            cursor: 'pointer', transition: 'background 150ms',
+                            alignItems: 'flex-start',
+                          }}
+                          onMouseEnter={e => e.currentTarget.style.background = isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,0,0,0.02)'}
+                          onMouseLeave={e => e.currentTarget.style.background = notif.read ? 'transparent' : (isDark ? 'rgba(232,93,38,0.03)' : 'rgba(232,93,38,0.05)')}
+                        >
+                          {/* Icon badge */}
+                          <div style={{
+                            width: '32px', height: '32px', borderRadius: '8px', flexShrink: 0,
+                            background: `${notif.color}15`,
+                            border: `1px solid ${notif.color}25`,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            marginTop: '1px',
+                          }}>
+                            <Icon size={14} color={notif.color} />
+                          </div>
+                          {/* Content */}
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', marginBottom: '2px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: '700', color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {notif.title}
+                              </span>
+                              <span style={{ fontSize: '10px', color: 'var(--text-muted)', flexShrink: 0 }}>{notif.time}</span>
+                            </div>
+                            <p style={{ fontSize: '11px', color: 'var(--text-secondary)', lineHeight: 1.45, margin: 0 }}>{notif.body}</p>
+                          </div>
+                          {/* Unread dot */}
+                          {!notif.read && (
+                            <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--accent)', boxShadow: '0 0 6px rgba(232,93,38,0.6)', flexShrink: 0, marginTop: '5px' }} />
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Footer */}
+                  <div style={{
+                    padding: '10px 16px',
+                    borderTop: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid rgba(0,0,0,0.05)',
+                    background: isDark ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.02)',
+                    textAlign: 'center',
+                  }}>
+                    <span style={{ fontSize: '11px', color: 'var(--text-muted)', fontWeight: '500' }}>
+                      {notifications.length} total notifications
+                    </span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             <div style={{ width: '1px', height: '18px', background: 'var(--border)' }} />
 
@@ -245,19 +529,20 @@ export default function Layout({ user, logout }) {
         </header>
 
         {/* ── Scrolling Marquee Live Transaction Ticker ── */}
-        <div style={{
-          height: '28px',
-          background: 'rgba(12, 12, 12, 0.8)',
-          borderBottom: '1px solid var(--border)',
-          display: 'flex',
-          alignItems: 'center',
-          overflow: 'hidden',
-          fontSize: '11px',
-          fontWeight: '500',
-          color: 'var(--text-secondary)',
-          position: 'relative',
-          flexShrink: 0
-        }}>
+        <div
+          className="app-ticker"
+          style={{
+            height: '28px',
+            display: 'flex',
+            alignItems: 'center',
+            overflow: 'hidden',
+            fontSize: '11px',
+            fontWeight: '500',
+            color: 'var(--text-secondary)',
+            position: 'relative',
+            flexShrink: 0
+          }}
+        >
           <div style={{
             background: 'var(--bg-elevated)',
             padding: '0 12px',

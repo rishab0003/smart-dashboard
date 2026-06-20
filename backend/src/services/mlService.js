@@ -28,14 +28,15 @@ exports.checkMLHealth = async () => {
   }
 };
 
-exports.getModelInfo = async () => {
-  const response = await mlClient.get('/model-info');
+exports.getModelInfo = async (userId) => {
+  const params = userId ? { params: { userId } } : {};
+  const response = await mlClient.get('/model-info', params);
   return response.data;
 };
 
-exports.trainModel = async (userId, records) => {
+exports.trainModel = async (userId, records, hyperparameters = {}) => {
   try {
-    const response = await mlClient.post('/train', { userId, records });
+    const response = await mlClient.post('/train', { userId, records, hyperparameters });
     return response.data;
   } catch (error) {
     const message = error.response?.data?.error || error.message;

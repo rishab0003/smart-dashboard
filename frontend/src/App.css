@@ -5,7 +5,7 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
-/* ─── CSS Custom Properties ─────────────────────────────── */
+/* ─── CSS Custom Properties — Dark Mode (default) ───────── */
 :root {
   --bg:           #0A0A0A;
   --bg-elevated:  #0F0F0F;
@@ -35,6 +35,189 @@
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
   --ease-out: cubic-bezier(0, 0, 0.2, 1);
   --duration: 220ms;
+}
+
+/* ─── Light Mode Theme ──────────────────────────────────── */
+html.light {
+  --bg:           #F4F2EF;
+  --bg-elevated:  #ECEAE6;
+  --card-bg:      #FFFFFF;
+  --card-hover:   #F9F8F6;
+  --border:       rgba(0, 0, 0, 0.08);
+  --border-hover: rgba(0, 0, 0, 0.18);
+  --accent:       #D4501E;
+  --accent-light: #E85D26;
+  --accent-dim:   rgba(212, 80, 30, 0.10);
+  --accent-glow:  rgba(212, 80, 30, 0.20);
+  --teal:         #3D8F8A;
+  --teal-dim:     rgba(61, 143, 138, 0.10);
+  --text-primary:   #18181B;
+  --text-secondary: #52525B;
+  --text-muted:     #A1A1AA;
+  --success:      #16A34A;
+  --success-dim:  rgba(22, 163, 74, 0.10);
+  --error:        #DC2626;
+  --error-dim:    rgba(220, 38, 38, 0.10);
+  --warning:      #D97706;
+  --warning-dim:  rgba(217, 119, 6, 0.10);
+}
+
+/* Light mode background & text overrides */
+html.light body              { background: var(--bg); color: var(--text-primary); }
+html.light ::-webkit-scrollbar-track { background: #E8E6E2; }
+html.light ::-webkit-scrollbar-thumb { background: #C4C2BE; }
+html.light ::-webkit-scrollbar-thumb:hover { background: #A8A6A2; }
+
+/* Light mode card adjustments */
+html.light .r-card      { background: var(--card-bg); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+html.light .r-kpi-card  { background: var(--card-bg); box-shadow: 0 1px 4px rgba(0,0,0,0.06); }
+html.light .r-card-glow { background: var(--card-bg); box-shadow: 0 0 24px rgba(212,80,30,0.06); }
+
+/* Light mode glassmorphism adjustments */
+html.light .glass-panel {
+  background: rgba(255,255,255,0.70);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border-color: rgba(0,0,0,0.08);
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+html.light .glass-panel::before {
+  background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, transparent 60%);
+}
+html.light .glass-kpi {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-color: rgba(0,0,0,0.07);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.95);
+}
+html.light .glass-kpi:hover {
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12), 0 0 0 1px rgba(212,80,30,0.15);
+  border-color: rgba(212,80,30,0.2);
+}
+html.light .glass-chart-wrap {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(24px) saturate(170%);
+  -webkit-backdrop-filter: blur(24px) saturate(170%);
+  border-color: rgba(0,0,0,0.07);
+  box-shadow: 0 2px 16px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.9);
+}
+html.light .glass-table-wrap {
+  background: rgba(255,255,255,0.80);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-color: rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+html.light .glass-header-bar {
+  background: rgba(255,255,255,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-color: rgba(0,0,0,0.07);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+}
+html.light .glass-select {
+  background: rgba(0,0,0,0.04);
+  border-color: rgba(0,0,0,0.12);
+  color: var(--text-secondary);
+}
+html.light .glass-metric-row { border-color: rgba(0,0,0,0.06); }
+html.light .glass-select option { background: #fff; color: var(--text-primary); }
+
+/* Light mode analytics background orbs */
+html.light .analytics-bg::before {
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(212, 80, 30, 0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(61, 143, 138, 0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(139, 92, 246, 0.03) 0%, transparent 70%);
+}
+
+/* Light mode sidebar */
+html.light .r-sidebar { background: #ECEAE6; border-right-color: rgba(0,0,0,0.08); }
+html.light .r-sidebar-link:hover  { background: rgba(0,0,0,0.04); }
+html.light .r-sidebar-link.active { background: var(--accent-dim); }
+
+/* Light mode table */
+html.light .r-table th { color: var(--text-muted); border-color: rgba(0,0,0,0.06); }
+html.light .r-table td { border-color: rgba(0,0,0,0.05); }
+html.light .r-table tr:hover td { background: rgba(0,0,0,0.02); }
+
+/* Light mode upload zone */
+html.light .upload-zone { border-color: rgba(212,80,30,0.3); }
+html.light .upload-zone:hover { background: rgba(212,80,30,0.04); }
+
+/* Light mode dashboard chart controls */
+html.light .r-kpi-card {
+  box-shadow: 0 1px 6px rgba(0,0,0,0.07), 0 0 0 1px rgba(0,0,0,0.04);
+}
+html.light .r-kpi-card:hover {
+  box-shadow: 0 4px 20px rgba(0,0,0,0.10), 0 0 0 1px rgba(212,80,30,0.12);
+  border-color: rgba(212,80,30,0.18);
+}
+
+/* ─── View Transitions — Theme Circular Reveal ──────────── */
+/* Suppress the browser's default root crossfade so our      */
+/* JS clip-path animation is the only effect on root.        */
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
+}
+
+/* The NEW snapshot sits on top; JS animates its clip-path   */
+::view-transition-new(root) {
+  z-index: 9999;
+}
+::view-transition-old(root) {
+  z-index: 1;
+}
+
+/* Honour prefers-reduced-motion: skip the circular reveal   */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ─── Fallback transition (non-VT browsers) ─────────────── */
+.theme-transitioning *,
+.theme-transitioning *::before,
+.theme-transitioning *::after {
+  transition:
+    background-color 350ms cubic-bezier(0.4,0,0.2,1) !important,
+    background      350ms cubic-bezier(0.4,0,0.2,1) !important,
+    border-color     350ms cubic-bezier(0.4,0,0.2,1) !important,
+    color            250ms cubic-bezier(0.4,0,0.2,1) !important,
+    box-shadow       350ms cubic-bezier(0.4,0,0.2,1) !important,
+    fill             250ms cubic-bezier(0.4,0,0.2,1) !important,
+    stroke           250ms cubic-bezier(0.4,0,0.2,1) !important;
+}
+
+/* ─── App Header + Ticker CSS vars ─────────────────────────  */
+:root {
+  --header-bg:  rgba(15, 15, 15, 0.95);
+  --ticker-bg:  rgba(12, 12, 12, 0.85);
+}
+html.light {
+  --header-bg:  rgba(248, 246, 243, 0.92);
+  --ticker-bg:  rgba(236, 234, 230, 0.90);
+}
+
+.app-header {
+  background: var(--header-bg);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  border-bottom: 1px solid var(--border);
+}
+html.light .app-header {
+  box-shadow: 0 1px 0 rgba(0,0,0,0.06), 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.app-ticker {
+  background: var(--ticker-bg);
+  border-bottom: 1px solid var(--border);
 }
 
 /* ─── Base Reset ────────────────────────────────────────── */
@@ -84,18 +267,177 @@ body { background: var(--bg); color: var(--text-primary); font-size: 16px; line-
 .r-card-lift:hover { transform: translateY(-4px); box-shadow: 0 24px 64px rgba(0,0,0,0.6); }
 .glass-card { background: var(--card-bg); border: 1px solid var(--border); border-radius: var(--radius-md); box-shadow: 0 4px 24px rgba(0,0,0,0.3); }
 
+/* ─── Glassmorphism System ──────────────────────────────── */
+.glass-panel {
+  background: rgba(20, 20, 20, 0.55);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+.glass-panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.04) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: 0;
+}
+.glass-panel > * { position: relative; z-index: 1; }
+.glass-panel:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  box-shadow:
+    0 16px 48px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 0 0 1px rgba(232, 93, 38, 0.06);
+}
+
+/* Deep glass — for chart panels */
+.glass-chart-wrap {
+  background: rgba(14, 14, 14, 0.6);
+  backdrop-filter: blur(32px) saturate(180%);
+  -webkit-backdrop-filter: blur(32px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 4px 24px rgba(0, 0, 0, 0.45),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  position: relative;
+  overflow: hidden;
+  transition: border-color var(--duration) var(--ease), box-shadow var(--duration) var(--ease);
+}
+.glass-chart-wrap::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(232, 93, 38, 0.3), rgba(93, 181, 176, 0.2), transparent);
+  pointer-events: none;
+}
+.glass-chart-wrap:hover {
+  border-color: rgba(255, 255, 255, 0.12);
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+/* KPI glass cards */
+.glass-kpi {
+  background: rgba(18, 18, 18, 0.7);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  position: relative;
+  overflow: hidden;
+  transition: all var(--duration) var(--ease);
+}
+.glass-kpi::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+.glass-kpi:hover {
+  border-color: rgba(232, 93, 38, 0.25);
+  box-shadow:
+    0 8px 32px rgba(0, 0, 0, 0.5),
+    0 0 20px rgba(232, 93, 38, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  transform: translateY(-3px);
+}
+
+/* Glass table container */
+.glass-table-wrap {
+  background: rgba(12, 12, 12, 0.65);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: 0 4px 32px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Analytics page background canvas */
+.analytics-bg {
+  position: relative;
+  isolation: isolate;
+}
+.analytics-bg::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 20%, rgba(232, 93, 38, 0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 80% 70%, rgba(93, 181, 176, 0.05) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 50% 50%, rgba(139, 92, 246, 0.04) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+/* Glass header bar */
+.glass-header-bar {
+  background: rgba(15, 15, 15, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-md);
+  padding: 20px 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+/* Glass select input */
+.glass-select {
+  background: rgba(255, 255, 255, 0.04);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-sm);
+  padding: 8px 14px;
+  font-size: 13px;
+  font-family: var(--font);
+  outline: none;
+  cursor: pointer;
+  transition: all var(--duration) var(--ease);
+}
+.glass-select:hover, .glass-select:focus {
+  border-color: rgba(232, 93, 38, 0.4);
+  color: var(--text-primary);
+  background: rgba(232, 93, 38, 0.07);
+}
+.glass-select option { background: #1a1a1a; color: var(--text-primary); }
+
+/* Glass metrics row item */
+.glass-metric-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 11px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+.glass-metric-row:last-child { border-bottom: none; }
+
 /* ─── Custom Range Sliders ──────────────────────────────── */
 .r-slider {
   -webkit-appearance: none;
   width: 100%;
   height: 4px;
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--text-muted);
+  opacity: 0.35;
   border-radius: 2px;
   outline: none;
-  transition: background var(--duration) var(--ease);
+  transition: opacity var(--duration) var(--ease);
 }
 .r-slider:hover {
-  background: rgba(255, 255, 255, 0.15);
+  opacity: 0.65;
 }
 .r-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
@@ -401,7 +743,7 @@ body { background: var(--bg); color: var(--text-primary); font-size: 16px; line-
   color: var(--text-secondary); text-decoration: none;
   transition: all var(--duration) var(--ease); margin: 2px 0;
 }
-.r-sidebar-link:hover { background: rgba(255,255,255,0.04); color: var(--text-primary); }
+.r-sidebar-link:hover { background: var(--card-hover); color: var(--text-primary); }
 .r-sidebar-link.active { background: var(--accent-dim); color: var(--accent); border-right: 2px solid var(--accent); }
 
 /* ─── KPI Cards ─────────────────────────────────────────── */
@@ -416,7 +758,7 @@ body { background: var(--bg); color: var(--text-primary); font-size: 16px; line-
 .r-table th { text-align: left; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); padding: 12px 16px; border-bottom: 1px solid var(--border); }
 .r-table td { padding: 14px 16px; color: var(--text-secondary); border-bottom: 1px solid var(--border); vertical-align: middle; }
 .r-table tr:last-child td { border-bottom: none; }
-.r-table tr:hover td { background: rgba(255,255,255,0.02); color: var(--text-primary); }
+.r-table tr:hover td { background: var(--card-hover); color: var(--text-primary); }
 
 /* ─── Pulse Dot ─────────────────────────────────────────── */
 .r-pulse-dot {
@@ -470,3 +812,95 @@ body { background: var(--bg); color: var(--text-primary); font-size: 16px; line-
 /* ─── Horizontal Scroll Strip ───────────────────────────── */
 .r-hscroll { overflow-x: auto; display: flex; gap: 12px; padding-bottom: 8px; }
 .r-hscroll::-webkit-scrollbar { height: 0; }
+
+/* ─── Control Bar ────────────────────────────────────────── */
+.r-control-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+}
+
+.r-control-bar-search {
+  position: relative;
+  flex: 1 1 320px;
+  max-width: 420px;
+}
+
+.r-control-bar-options {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+  .r-control-bar {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .r-control-bar-search {
+    flex: 1 1 auto;
+    max-width: 100%;
+  }
+  .r-control-bar-options {
+    justify-content: space-between;
+    width: 100%;
+  }
+}
+
+/* ─── Printing Report Overrides ─────────────────────────── */
+@media print {
+  body, .main-area, .analytics-bg, html, #root {
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .r-sidebar,
+  .mobile-menu-btn,
+  .app-header,
+  .app-ticker,
+  .glass-header-bar button,
+  .glass-header-bar select,
+  #theme-toggle,
+  .r-btn,
+  .r-btn-primary,
+  .r-btn-ghost,
+  button,
+  select,
+  footer {
+    display: none !important;
+  }
+
+  .main-area {
+    margin-left: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    overflow: visible !important;
+  }
+
+  .glass-chart-wrap,
+  .glass-table-wrap,
+  .glass-header-bar,
+  .glass-kpi,
+  .r-kpi-card {
+    background: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    box-shadow: none !important;
+    color: #000000 !important;
+    page-break-inside: avoid;
+  }
+
+  /* Force Recharts and charts to be printable with white background */
+  svg text {
+    fill: #475569 !important;
+  }
+
+  /* Responsive column exclusions for tables on paper */
+  .hide-tablet {
+    display: table-cell !important;
+  }
+}

@@ -5,11 +5,11 @@ services:
     image: mongo:7.0
     container_name: smart_dashboard_db
     restart: unless-stopped
-    # ports:
-    #   - "27017:27017"   # commented out - using internal network only
+    ports:
+      - "27017:27017"
     environment:
-      MONGO_INITDB_ROOT_USERNAME: admin
-      MONGO_INITDB_ROOT_PASSWORD: password123
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_PASSWORD}
       MONGO_INITDB_DATABASE: smart_dashboard
     volumes:
       # Persist data even when container is stopped
@@ -32,8 +32,10 @@ services:
     environment:
       NODE_ENV: development
       PORT: 5000
-      MONGO_URI: mongodb://admin:password123@mongodb:27017/smart_dashboard?authSource=admin
-      JWT_SECRET: your_jwt_secret_change_this_in_production
+      MONGO_URI: mongodb://mongodb:27017/smart_dashboard?authSource=admin
+      MONGO_USER: ${MONGO_USER}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRE: 7d
       ML_SERVICE_URL: http://ml-service:5001
       FRONTEND_URL: http://localhost:3000
@@ -100,6 +102,21 @@ services:
     depends_on:
       - frontend
       - backend
+    networks:
+      - app_network
+
+
+  # ── MONGO EXPRESS (Web DB GUI) ───────────────────────────
+  mongo-express:
+    image: mongo-express:latest
+    container_name: smart_dashboard_mongo_express
+    restart: unless-stopped
+    ports:
+      - "8081:8081"
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: password123 # Web login password
+      ME_CONFIG_MONGODB_URL: mongodb://${MONGO_USER}:${MONGO_PASSWORD}@mongodb:27017/?authSource=admin
     networks:
       - app_network
 

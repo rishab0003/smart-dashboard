@@ -228,13 +228,26 @@ export default function LoginPage({ setIsAuthenticated, setUser }) {
           </p>
 
           {/* Test credentials */}
-          <div style={{
-            marginTop: '32px', padding: '16px',
-            background: 'var(--card-bg)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-sm)',
-          }}>
-            <p className="r-label" style={{ marginBottom: '8px' }}>Test credentials</p>
+          <div 
+            onClick={() => {
+              setEmail('test@example.com');
+              setPassword('password123');
+            }}
+            style={{
+              marginTop: '32px', padding: '16px',
+              background: 'var(--card-bg)',
+              border: '1px solid var(--border)',
+              borderRadius: 'var(--radius-sm)',
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+            }}
+            onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--accent)'; e.currentTarget.style.background = 'var(--card-hover)'; }}
+            onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.background = 'var(--card-bg)'; }}
+          >
+            <p className="r-label" style={{ marginBottom: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>Test credentials</span>
+              <span style={{ fontSize: '10px', color: 'var(--accent)', fontWeight: '700' }}>Click to autofill</span>
+            </p>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>test@example.com</p>
             <p style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>password123</p>
           </div>
