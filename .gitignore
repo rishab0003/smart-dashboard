@@ -1,0 +1,44 @@
+node_modules/
+__pycache__/
+*.pyc
+.env
+.env.*
+*.pkl
+*.joblib
+dist/
+build/
+.DS_Store
+ml-service/ml_env/
+progress.md
+REACT_FRONTEND.md
+.gitignore
+
+# Uploads and temporary directories
+backend/uploads/
+ml-service/data/
+scratch/
+
+# User-specific ML model metadata
+ml-service/models/metadata_*.json
+ml-service/models/encoders_*.pkl
+ml-service/models/model_*.pkl
+
+# IDE / Editor configuration
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS metadata files
+Thumbs.db
+
+# Python test and coverage caches
+.pytest_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# NPM & Yarn debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
