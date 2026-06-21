@@ -8,6 +8,12 @@
 
 **SmartAnalyticsDash** is an enterprise-ready, containerized full-stack analytics suite. It bridges a modern glassmorphic React interface with a Node.js/Express API Gateway and an independent Python Flask/Gunicorn microservice. It allows users to ingest CSV datasets, explore and edit records in real time, and fit machine learning models (Random Forest) to compute predictive sales forecasts.
 
+## 🌐 Live Demo
+
+**[🚀 Visit the Live Application](https://smart-dashboard-frontend-qafh.onrender.com/)**
+
+Check out the deployed version to see SmartAnalyticsDash in action!
+
 ## 🖼️ Interface Previews
 
 <div align="center">
