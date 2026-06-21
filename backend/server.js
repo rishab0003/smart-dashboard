@@ -14,6 +14,9 @@ connectDB();
 
 const app = express();
 
+// Trust proxy header (necessary for rate limiting behind Render's load balancer)
+app.set('trust proxy', 1);
+
 // ── SECURITY MIDDLEWARE ──────────────────────────────────
 // helmet sets secure HTTP headers
 app.use(helmet());
