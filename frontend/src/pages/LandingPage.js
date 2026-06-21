@@ -61,19 +61,22 @@ function useReveal() {
 
 /* ── Sparkline mini ── */
 function Sparkline({ data, color = '#E85D26', width = 80, height = 28 }) {
+  if (!data || data.length === 0) return null;
   const max = Math.max(...data);
   const min = Math.min(...data);
   const range = max - min || 1;
   const w = width, h = height;
-  const pts = data.map((v, i) => {
+  const ptsArray = data.map((v, i) => {
     const x = (i / (data.length - 1)) * w;
     const y = h - ((v - min) / range) * h;
-    return `${x.toFixed(1)},${y.toFixed(1)}`;
-  }).join(' ');
+    return { x, y };
+  });
+  const ptsString = ptsArray.map(p => `${p.x.toFixed(1)},${p.y.toFixed(1)}`).join(' ');
+  const lastPt = ptsArray[ptsArray.length - 1];
   return (
     <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} style={{ overflow: 'visible' }}>
-      <polyline points={pts} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
-      <circle cx={parseFloat(pts.split(' ').at(-1).split(',')[0])} cy={parseFloat(pts.split(' ').at(-1).split(',')[1])} r="2.5" fill={color} />
+      <polyline points={ptsString} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round" strokeLinecap="round" />
+      <circle cx={lastPt.x} cy={lastPt.y} r="2.5" fill={color} />
     </svg>
   );
 }
