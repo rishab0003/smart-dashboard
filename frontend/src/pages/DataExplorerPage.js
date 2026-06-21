@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Search, Edit2, Trash2, ChevronLeft, ChevronRight, ArrowUpDown, AlertCircle, CheckCircle, X, Calendar, User, Tag, MapPin, Package } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 import SpotlightCard from '../components/SpotlightCard';
 
 export default function DataExplorerPage() {
@@ -24,7 +24,7 @@ export default function DataExplorerPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/sales', {
+      const response = await api.get('/api/sales', {
         headers: { Authorization: `Bearer ${token}` },
         params: { page, limit, search, sortBy, sortOrder }
       });
@@ -71,7 +71,7 @@ export default function DataExplorerPage() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.put(`/api/sales/${editRecord._id}`, editRecord, {
+      const response = await api.put(`/api/sales/${editRecord._id}`, editRecord, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {
@@ -90,7 +90,7 @@ export default function DataExplorerPage() {
     setActionLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.delete(`/api/sales/${deleteId}`, {
+      const response = await api.delete(`/api/sales/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data.success) {

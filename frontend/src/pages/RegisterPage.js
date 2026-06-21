@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { BarChart3, Eye, EyeOff, ArrowRight, BarChart2, Database, Brain } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 
 export default function RegisterPage({ setIsAuthenticated, setUser }) {
   const [formData, setFormData] = useState({ name: '', email: '', password: '', confirmPassword: '' });
@@ -20,7 +20,7 @@ export default function RegisterPage({ setIsAuthenticated, setUser }) {
     if (formData.password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     try {
-      const response = await axios.post('/api/auth/register', {
+      const response = await api.post('/api/auth/register', {
         name: formData.name, email: formData.email, password: formData.password
       });
       localStorage.setItem('token', response.data.token);

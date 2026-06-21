@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { Brain, TrendingUp, Calendar, Package, MapPin, DollarSign, Lock, Unlock, RefreshCw, CheckCircle, ArrowRightLeft } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import axios from 'axios';
+import api from '../api';
 import SpotlightCard from '../components/SpotlightCard';
 
 const months = [
@@ -105,7 +105,7 @@ export default function PredictionPage() {
   const fetchModelStatus = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/predict/status', {
+      const response = await api.get('/api/predict/status', {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (response.data) {
@@ -119,7 +119,7 @@ export default function PredictionPage() {
   const fetchCustomFields = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/analytics/fields', {
+      const response = await api.get('/api/analytics/fields', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const { categories, regions } = response.data.data;
@@ -177,7 +177,7 @@ export default function PredictionPage() {
     setError('');
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/predict/train', {
+      const response = await api.post('/api/predict/train', {
         hyperparameters: {
           n_estimators: nEstimators,
           max_depth: maxDepth
@@ -210,7 +210,7 @@ export default function PredictionPage() {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post('/api/predict', {
+      const response = await api.post('/api/predict', {
         month: parseInt(formData.month),
         year: parseInt(formData.year),
         quantityordered: parseInt(formData.quantityordered),

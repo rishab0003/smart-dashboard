@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDropzone } from 'react-dropzone';
 import { Upload, File, CheckCircle, Database, Cpu } from 'lucide-react';
-import axios from 'axios';
+import api from '../api';
 import SpotlightCard from '../components/SpotlightCard';
 
 export default function UploadPage() {
@@ -26,7 +26,7 @@ export default function UploadPage() {
 
       try {
         const token = localStorage.getItem('token');
-        const response = await axios.get(`/api/upload/${id}`, {
+        const response = await api.get(`/api/upload/${id}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         const upload = response.data.data;
@@ -66,7 +66,7 @@ export default function UploadPage() {
   const fetchUploadHistory = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.get('/api/upload', {
+      const response = await api.get('/api/upload', {
         headers: { Authorization: `Bearer ${token}` }
       });
       const history = response.data.data.map(u => ({
@@ -211,7 +211,7 @@ export default function UploadPage() {
 
     try {
       const token = localStorage.getItem('token');
-      const response = await axios.post(`/api/upload?overwrite=${overwrite}`, formData, {
+      const response = await api.post(`/api/upload?overwrite=${overwrite}`, formData, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'multipart/form-data'

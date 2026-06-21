@@ -4,7 +4,7 @@ import {
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area
 } from 'recharts';
-import axios from 'axios';
+import api from '../api';
 import SpotlightCard from '../components/SpotlightCard';
 
 /* ── Custom tooltip with glass look ────────────────────── */
@@ -51,12 +51,12 @@ export default function AnalyticsPage() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [summary, trend, prevTrend, categories, regions, topProducts] = await Promise.all([
-        axios.get('/api/analytics/summary', { headers }),
-        axios.get(`/api/analytics/trend?year=${selectedYear}`, { headers }),
-        axios.get(`/api/analytics/trend?year=${selectedYear - 1}`, { headers }).catch(() => ({ data: { data: [] } })),
-        axios.get('/api/analytics/by-category', { headers }),
-        axios.get('/api/analytics/by-region', { headers }),
-        axios.get('/api/analytics/top-products', { headers })
+        api.get('/api/analytics/summary', { headers }),
+        api.get(`/api/analytics/trend?year=${selectedYear}`, { headers }),
+        api.get(`/api/analytics/trend?year=${selectedYear - 1}`, { headers }).catch(() => ({ data: { data: [] } })),
+        api.get('/api/analytics/by-category', { headers }),
+        api.get('/api/analytics/by-region', { headers }),
+        api.get('/api/analytics/top-products', { headers })
       ]);
 
       setAnalyticsData({

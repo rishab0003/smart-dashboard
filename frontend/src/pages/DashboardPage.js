@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { DollarSign, ShoppingCart, TrendingUp, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell, AreaChart, Area } from 'recharts';
-import axios from 'axios';
+import api from '../api';
 import SpotlightCard from '../components/SpotlightCard';
 
 /* ── Sparkline SVG ── */
@@ -71,7 +71,7 @@ export default function DashboardPage() {
     try {
       const token = localStorage.getItem('token');
       const headers = { Authorization: `Bearer ${token}` };
-      const response = await axios.get(`/api/analytics/trend?year=${year}`, { headers });
+      const response = await api.get(`/api/analytics/trend?year=${year}`, { headers });
       setDashboardData(prev => ({
         ...prev,
         trend: response.data.data || []
@@ -87,11 +87,11 @@ export default function DashboardPage() {
       const headers = { Authorization: `Bearer ${token}` };
 
       const [summary, categories, regions, topProducts, fields] = await Promise.all([
-        axios.get('/api/analytics/summary', { headers }),
-        axios.get('/api/analytics/by-category', { headers }),
-        axios.get('/api/analytics/by-region', { headers }),
-        axios.get('/api/analytics/top-products', { headers }),
-        axios.get('/api/analytics/fields', { headers }).catch(() => ({ data: { data: { years: [] } } }))
+        api.get('/api/analytics/summary', { headers }),
+        api.get('/api/analytics/by-category', { headers }),
+        api.get('/api/analytics/by-region', { headers }),
+        api.get('/api/analytics/top-products', { headers }),
+        api.get('/api/analytics/fields', { headers }).catch(() => ({ data: { data: { years: [] } } }))
       ]);
 
       const yearsList = fields.data.data?.years || [];
